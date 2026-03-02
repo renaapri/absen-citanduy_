@@ -142,14 +142,18 @@
 
                 data.forEach((row, index) => {
                     const dateObj = new Date(row.created_at);
-                    const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    
+                    // Gunakan format 'en-GB' agar jam menggunakan pemisah titik dua (:) secara konsisten
+                    const jamMasuk = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
                     const tglTampil = row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-';
                     
                     // --- TESTING: JAM PULANG DIUBAH JADI 07:00 ---
                     const jamPulang = "07:00"; 
                     // ---------------------------------------------
 
+                    // Logika Perbaikan: Sekarang 06:45 pasti dianggap > 06:30 (TERLAMBAT)
                     const isLate = jamMasuk > "06:30";
+                    
                     const fotoUrl = row.foto_url ? row.foto_url : `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
 
                     tbody.innerHTML += `
@@ -168,7 +172,7 @@
                             <td class="p-4 text-[10px] text-gray-600 font-bold">${row.jabatan || '-'}</td>
                             <td class="p-4 text-center font-bold text-gray-500">${tglTampil}</td>
                             <td class="p-4 text-center">
-                                <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jamMasuk}</div>
+                                <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jamMasuk.replace(/:/g, '.')}</div>
                                 <div class="text-[8px] px-1 rounded inline-block font-black ${isLate ? 'late-badge' : 'ontime-badge'}">
                                     ${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}
                                 </div>
