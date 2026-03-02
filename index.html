@@ -22,188 +22,213 @@
         .main-card {
             background: white;
             border-radius: 30px;
-            padding: 30px;
+            padding: 40px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
             position: relative;
+            overflow: hidden;
         }
-        .logo-container { text-align: center; margin-bottom: 10px; }
-        .logo-img { max-width: 70px; height: auto; }
-        .form-control, .form-select { border-radius: 10px; background-color: #f8f9fa; font-size: 14px; }
-        .btn-absensi { border-radius: 12px; padding: 12px; font-weight: 700; width: 100%; border: none; text-transform: uppercase; }
-        .btn-masuk { background: linear-gradient(to right, #27ae60, #2ecc71); color: white; margin-bottom: 10px; }
+        .main-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 8px;
+            background: linear-gradient(to right, #27ae60, #2ecc71);
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo-img {
+            max-width: 80px;
+            height: auto;
+        }
+        .welcome-text { font-size: 1.1rem; font-weight: 700; color: #666; margin-bottom: 5px; }
+        .form-control, .form-select { border-radius: 12px; padding: 12px; background-color: #f8f9fa; border: 1px solid #eee; font-size: 14px; }
+        .btn-absensi { border-radius: 15px; padding: 15px; font-weight: 700; transition: 0.3s; text-transform: uppercase; border: none; width: 100%; }
+        .btn-masuk { background: linear-gradient(to right, #27ae60, #2ecc71); color: white; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); margin-bottom: 15px; }
         .btn-pulang { background: #fff; color: #e74c3c; border: 2px solid #e74c3c; }
-        .btn-pulang:disabled { opacity: 0.5; background: #eee; border-color: #ccc; color: #999; }
-        #clock { font-size: 1.1rem; font-weight: 700; background: #f1f2f6; padding: 5px 15px; border-radius: 10px; }
-        .loading-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 100; border-radius: 30px; justify-content: center; align-items: center; flex-direction: column; }
+        .btn-pulang:disabled { opacity: 0.5; cursor: not-allowed; }
+        #clock { font-size: 1.2rem; font-weight: 700; background: #f1f2f6; color: #2f3542; padding: 5px 15px; border-radius: 10px; display: inline-block; transition: color 0.3s; }
+        .loading-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
 <div class="main-card">
-    <div id="loader" class="loading-overlay">
-        <div class="spinner-border text-success mb-2"></div>
-        <small class="fw-bold text-dark">Sedang Mengirim Absen...</small>
-        <small class="text-muted text-center px-3">Mohon jangan tutup halaman atau matikan GPS</small>
-    </div>
+    <div id="loader" class="loading-overlay">
+        <div class="spinner-border text-success mb-2"></div>
+        <small class="fw-bold text-dark">Sedang Mengirim Absen...</small>
+        <small class="text-muted text-center px-3">Mohon jangan tutup halaman atau matikan GPS</small>
+    </div>
 
-    <div class="logo-container">
-        <img src="img/g2.png" alt="Logo UPTD Citanduy" class="logo-img">
-    </div>
+    <div class="logo-container">
+        <img src="img/g2.png" alt="Logo UPTD Citanduy" class="logo-img">
+    </div>
 
-    <div class="text-center mb-4">
-        <h4 class="fw-bold text-dark m-0">DINAS SUMBER DAYA AIR</h4>
-        <p class="fw-bold text-success small mb-3">UPTD PSDA WILAYAH SUNGAI CITANDUY</p>
-        <hr>
-        <div id="greeting" class="welcome-text">Selamat Datang</div>
-        <div id="clock">00:00:00</div>
-    </div>
+    <div class="text-center mb-4">
+        <h4 class="fw-bold text-dark m-0">DINAS SUMBER DAYA AIR</h4>
+        <p class="fw-bold text-success small mb-3">UPTD PSDA WILAYAH SUNGAI CITANDUY</p>
+        <hr>
+        <div id="greeting" class="welcome-text">Selamat Datang</div>
+        <div id="clock">00:00:00</div>
+    </div>
 
-    <form id="absenForm">
-        <div class="mb-3">
-            <label class="form-label small fw-bold text-uppercase">NIP Pegawai</label>
-            <input type="text" id="nip" class="form-control" placeholder="Contoh: 198XXXXXXXX" required>
-        </div>
-        
-        <div class="mb-3">
-            <label class="form-label small fw-bold text-uppercase">Nama Lengkap</label>
-            <input type="text" id="nama" class="form-control" placeholder="Nama tanpa gelar" required>
-        </div>
+    <form id="absenForm">
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-uppercase">NIP Pegawai</label>
+            <input type="text" id="nip" class="form-control" placeholder="Contoh: 198XXXXXXXX" required>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-uppercase">Nama Lengkap</label>
+            <input type="text" id="nama" class="form-control" placeholder="Nama tanpa gelar" required>
+        </div>
 
-        <div class="mb-3">
-            <label class="form-label small fw-bold text-uppercase">Jabatan</label>
-            <select id="jabatan" class="form-select" required>
-                <option value="" selected disabled>-- Pilih Jabatan --</option>
-                <option value="Pengadministrasi Perkantoran">Pengadministrasi Perkantoran</option>
-                <option value="Pengolah Data dan Informasi">Pengolah Data dan Informasi</option>
-                <option value="Penata Layanan Operasional">Penata Layanan Operasional</option>
-                <option value="Tenaga Teknis Sumber Daya Air">Tenaga Teknis Sumber Daya Air</option>
-                <option value="Operator Layanan Operasional">Operator Layanan Operasional</option>
-            </select>
-        </div>
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-uppercase">Jabatan</label>
+            <select id="jabatan" class="form-select" required>
+                <option value="" selected disabled>-- Pilih Jabatan --</option>
+                <option value="Pengadministrasi Perkantoran">Pengadministrasi Perkantoran</option>
+                <option value="Pengolah Data dan Informasi">Pengolah Data dan Informasi</option>
+                <option value="Penata Layanan Operasional">Penata Layanan Operasional</option>
+                <option value="Tenaga Teknis Sumber Daya Air">Tenaga Teknis Sumber Daya Air</option>
+                <option value="Operator Layanan Operasional">Operator Layanan Operasional</option>
+            </select>
+        </div>
 
-        <div class="mb-4">
-            <label class="form-label small fw-bold text-uppercase">Foto Selfie</label>
-            <input type="file" id="foto" class="form-control" accept="image/*" capture="user">
-            <small class="text-danger" style="font-size: 10px;">*Wajib diunggah saat Absen Masuk</small>
-        </div>
+        <div class="mb-4">
+            <label class="form-label small fw-bold text-uppercase">Foto Selfie</label>
+            <input type="file" id="foto" class="form-control" accept="image/*" capture="user">
+            <small class="text-danger" style="font-size: 10px;">*Wajib diunggah saat Absen Masuk</small>
+        </div>
 
-        <button type="button" onclick="kirimData('Masuk')" id="btnMasuk" class="btn btn-absensi btn-masuk shadow">
-            <i class="fas fa-camera me-2"></i> Absen Masuk Sekarang
-        </button>
+        <button type="button" onclick="kirimData('Masuk')" id="btnMasuk" class="btn btn-absensi btn-masuk shadow">
+            <i class="fas fa-camera me-2"></i> Absen Masuk Sekarang
+        </button>
 
-        <button type="button" onclick="kirimData('Pulang')" id="btnPulang" class="btn btn-absensi btn-pulang mt-2">
-            <i class="fas fa-home me-2"></i> Absen Pulang
-        </button>
-        <div id="info-waktu" class="text-center mt-3 small text-muted font-monospace">Memeriksa sistem...</div>
-    </form>
+        <button type="button" onclick="kirimData('Pulang')" id="btnPulang" class="btn btn-absensi btn-pulang mt-2">
+            <i class="fas fa-home me-2"></i> Absen Pulang
+        </button>
+        <div id="info-waktu" class="text-center mt-3 small text-muted font-monospace">Memeriksa sistem...</div>
+    </form>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_jye1AjnIADhnjyFo7qWPJw_fTPSStcp';
-    
-    const { createClient } = supabase;
-    const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_jye1AjnIADhnjyFo7qWPJw_fTPSStcp';
+    
+    const { createClient } = supabase;
+    const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    function updateWaktu() {
-        const sekarang = new Date();
-        const jam = sekarang.getHours();
-        const menit = sekarang.getMinutes();
-        const detik = sekarang.getSeconds();
-        
-        // Format jam untuk pembandingan (HH:mm)
-        const jamMenit = `${String(jam).padStart(2, '0')}:${String(menit).padStart(2, '0')}`;
-        
-        const clockElement = document.getElementById('clock');
-        clockElement.innerText = `${jamMenit}:${String(detik).padStart(2, '0')}`;
+    function updateWaktu() {
+        const sekarang = new Date();
+        const jam = sekarang.getHours();
+        const menit = sekarang.getMinutes();
+        const detik = sekarang.getSeconds();
+        
+        // Format jam untuk pembandingan (HH:mm)
+        const jamMenit = `${String(jam).padStart(2, '0')}:${String(menit).padStart(2, '0')}`;
+        
+        const clockElement = document.getElementById('clock');
+        clockElement.innerText = `${jamMenit}:${String(detik).padStart(2, '0')}`;
 
-        // WARNA JAM: Merah jika sudah lewat jam 06:30 (Sesuai aturan Admin)
-        if (jamMenit > "06:30" && jam < 11) {
-            clockElement.style.color = "#e74c3c"; // Merah
-        } else {
-            clockElement.style.color = "#2f3542"; // Normal
-        }
-
-        const greeting = document.getElementById('greeting');
-        if (jam >= 6 && jam < 11) greeting.innerText = "Selamat Pagi";
-        else if (jam >= 11 && jam < 15) greeting.innerText = "Selamat Siang";
-        else if (jam >= 15 && jam < 18) greeting.innerText = "Selamat Sore";
-        else greeting.innerText = "Selamat Malam";
-
-        const btnPulang = document.getElementById('btnPulang');
-        const infoWaktu = document.getElementById('info-waktu');
-        
-        // KUNCI PULANG: Terbuka mulai jam 13:00
-        if (jam < 13) {
-            btnPulang.disabled = true;
-            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 13:00</span>";
-        } else {
-            btnPulang.disabled = false;
-            infoWaktu.innerHTML = "🔓 <span class='text-success'>Waktu Pulang Telah Tiba</span>";
-        }
-    }
-    
-    setInterval(updateWaktu, 1000);
-    updateWaktu();
-
-async function kirimData(statusAbsen) {
-    const nip = document.getElementById('nip').value.trim();
-    const nama = document.getElementById('nama').value;
-    const jabatan = document.getElementById('jabatan').value;
-    const fotoFile = document.getElementById('foto').files[0];
-
-    const sekarang = new Date();
-    const tglLokal = sekarang.toLocaleDateString('en-CA'); // Format: 2026-03-02
-    const jamLokal = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-    if (!nip || !nama) return alert("NIP dan Nama wajib diisi!");
-
-    document.getElementById('loader').style.display = 'flex';
-
-    try {
-        if (statusAbsen === 'Masuk') {
-            // PROSES MASUK: Membuat baris baru
-            const { error } = await _supabase.from('laporan_absen').insert([{ 
-                nip, nama, jabatan, 
-                tanggal: tglLokal, 
-                status: 'HADIR' 
-            }]);
-            if (error) throw error;
-            alert("✅ Absen Masuk Berhasil!");
+        // WARNA JAM: Merah jika sudah lewat jam 06:30 (Sesuai aturan Admin)
+        if (jamMenit > "06:30" && jam < 11) {
+            clockElement.style.color = "#e74c3c"; // Merah
         } else {
-            // PROSES PULANG: Mencari baris yang sama hari ini untuk di-UPDATE
-            const { data: barisPagi, error: errCari } = await _supabase
-                .from('laporan_absen')
-                .select('id')
-                .eq('nip', nip)
-                .eq('tanggal', tglLokal)
-                .maybeSingle();
-
-            if (!barisPagi) {
-                alert("❌ Data masuk tidak ditemukan untuk hari ini!");
-            } else {
-                // UPDATE baris tersebut agar status jadi SELESAI
-                const { error: errUp } = await _supabase
-                    .from('laporan_absen')
-                    .update({ 
-                        jam_pulang: jamLokal, 
-                        status: 'SELESAI' 
-                    })
-                    .eq('id', barisPagi.id);
-
-                if (errUp) throw errUp;
-                alert("✅ Absen Pulang Berhasil! Status: SELESAI");
-            }
+            clockElement.style.color = "#2f3542"; // Normal
         }
-        location.reload();
-    } catch (err) {
-        alert("❌ Error: " + err.message);
-    } finally {
-        document.getElementById('loader').style.display = 'none';
+
+        const greeting = document.getElementById('greeting');
+        if (jam >= 6 && jam < 11) greeting.innerText = "Selamat Pagi";
+        else if (jam >= 11 && jam < 15) greeting.innerText = "Selamat Siang";
+        else if (jam >= 15 && jam < 18) greeting.innerText = "Selamat Sore";
+        else greeting.innerText = "Selamat Malam";
+
+        const btnPulang = document.getElementById('btnPulang');
+        const infoWaktu = document.getElementById('info-waktu');
+        
+        // KUNCI PULANG: Terbuka mulai jam 14:00
+        if (jam < 14) {
+            btnPulang.disabled = true;
+            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 14:00</span>";
+        } else {
+            btnPulang.disabled = false;
+            infoWaktu.innerHTML = "🔓 <span class='text-success'>Waktu Pulang Telah Tiba</span>";
+        }
     }
-}
+    
+    setInterval(updateWaktu, 1000);
+    updateWaktu();
+
+    async function kirimData(statusAbsen) {
+        const nip = document.getElementById('nip').value;
+        const nama = document.getElementById('nama').value;
+        const jabatan = document.getElementById('jabatan').value;
+        const fotoFile = document.getElementById('foto').files[0];
+
+        if (!nip || !nama || !jabatan) {
+            alert("⚠️ Harap isi NIP, Nama, dan Jabatan!");
+            return;
+        }
+
+        if (statusAbsen === 'Masuk' && !fotoFile) {
+            alert("⚠️ Foto selfie wajib diunggah untuk Absen Masuk!");
+            return;
+        }
+
+        document.getElementById('loader').style.display = 'flex';
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const koordinat = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+            let publicFotoUrl = "";
+
+            try {
+                if (fotoFile) {
+                    const fileExt = fotoFile.name.split('.').pop();
+                    const fileName = `${Date.now()}_${nip}.${fileExt}`;
+                    
+                    const { data: uploadData, error: uploadError } = await _supabase
+                        .storage
+                        .from('foto-absen')
+                        .upload(fileName, fotoFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = _supabase.storage.from('foto-absen').getPublicUrl(fileName);
+                    publicFotoUrl = urlData.publicUrl;
+                }
+
+                const { error: dbError } = await _supabase
+                    .from('laporan_absen')
+                    .insert([{ 
+                        nip: nip, 
+                        nama: nama, 
+                        jabatan: jabatan, 
+                        status: statusAbsen, 
+                        lokasi: koordinat,
+                        foto_url: publicFotoUrl 
+                    }]);
+
+                if (dbError) throw dbError;
+
+                alert(`✅ Berhasil Absen ${statusAbsen}!\nLokasi Terdeteksi.`);
+                location.reload();
+
+            } catch (err) {
+                alert("❌ Gagal Sistem: " + err.message);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+
+        }, (err) => {
+            document.getElementById('loader').style.display = 'none';
+            alert("❌ Gagal! Izin GPS ditolak atau sinyal lemah. Pastikan GPS HP aktif.");
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    }
 </script>
 </body>
 </html>
+
+index absen vercel
