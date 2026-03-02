@@ -150,9 +150,9 @@
         const infoWaktu = document.getElementById('info-waktu');
         
         // KUNCI PULANG: Terbuka mulai jam 14:00
-        if (jam < 14) {
+        if (jam < 9) {
             btnPulang.disabled = true;
-            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 14:00</span>";
+            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 9:46</span>";
         } else {
             btnPulang.disabled = false;
             infoWaktu.innerHTML = "🔓 <span class='text-success'>Waktu Pulang Telah Tiba</span>";
@@ -230,3 +230,4 @@
 </script>
 </body>
 </html>
+
