@@ -95,14 +95,17 @@
                 data.forEach((row, index) => {
                     const dateObj = new Date(row.created_at);
                     const tgl = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const jam = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    
+                    // Ambil data jam_pulang dari database, tampilkan --:-- jika belum absen pulang
+                    const jamPulang = row.jam_pulang || '--:--';
                     
                     const namaPegawai = row.nama || '-';
                     const nipPegawai = row.nip || '-';
                     const jabatanPegawai = row.jabatan || '-';
 
                     // LOGIKA JAM TERLAMBAT (06:30)
-                    const isLate = jam > "06:30";
+                    const isLate = jamMasuk > "06:30";
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
@@ -117,17 +120,21 @@
                             <td class="p-4 text-[10px] text-gray-600 font-bold">${jabatanPegawai}</td>
                             <td class="p-4 text-center font-bold text-gray-500">${tgl}</td>
                             <td class="p-4 text-center">
-                                <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jam}</div>
+                                <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jamMasuk}</div>
                                 <div class="text-[8px] font-black italic ${isLate ? 'text-red-500' : 'text-green-500'}">
                                     ${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}
                                 </div>
                             </td>
-                            <td class="p-4 text-center text-gray-300">--:--</td>
+                            <td class="p-4 text-center font-black text-sm text-blue-600">
+                                ${jamPulang}
+                            </td>
                             <td class="p-4 text-center">
-                                <span class="bg-[#00c0a3] text-white px-4 py-1.5 rounded font-black text-[9px] shadow-sm">HADIR</span>
+                                <span class="bg-[#00c0a3] text-white px-4 py-1.5 rounded font-black text-[9px] shadow-sm">
+                                    ${jamPulang !== '--:--' ? 'SUDAH PULANG' : 'HADIR'}
+                                </span>
                             </td>
                             <td class="p-4 text-center no-export">
-                                <button onclick="hapusData(${row.id})" class="text-red-400 hover:text-red-600 transition text-lg active:scale-90">🗑️</button>
+                                <button onclick="hapusData(${row.id})" class="text-red-400 hover:text-red-600 transition text-lg active:scale-90" title="Hapus Data">🗑️</button>
                             </td>
                         </tr>
                     `;
