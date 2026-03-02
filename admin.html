@@ -12,9 +12,25 @@
         body { font-family: 'Inter', sans-serif; }
         .late-badge { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
         .ontime-badge { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        
+        /* Animasi Modal */
+        #photo-modal { transition: opacity 0.3s ease; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
+        #photo-modal.flex .modal-content { transform: scale(1); }
     </style>
 </head>
 <body class="bg-[#f4f7f6]">
+
+    <div id="photo-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeModal()">
+        <div class="relative max-w-2xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl modal-content" onclick="event.stopPropagation()">
+            <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/50 text-white w-10 h-10 rounded-full hover:bg-black transition text-xl font-bold">&times;</button>
+            <img id="modal-img" src="" class="w-full h-auto max-h-[80vh] object-contain bg-gray-100">
+            <div class="p-4 text-center">
+                <p id="modal-name" class="font-bold text-lg text-gray-800 uppercase tracking-tight"></p>
+                <p id="modal-desc" class="text-xs text-gray-500 font-medium"></p>
+            </div>
+        </div>
+    </div>
 
     <div class="max-w-[1400px] mx-auto p-6">
         <div class="bg-[#005a32] text-white p-5 rounded-t-xl flex justify-between items-end shadow-lg">
@@ -47,7 +63,7 @@
             </button>
         </div>
 
-        <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-b border-gray-200">
+        <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-gray-200">
             <table id="attendance-table" class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-[#004d2c] text-white text-[10px] font-bold uppercase tracking-wider">
@@ -77,6 +93,22 @@
         
         const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
 
+        // FUNGSI UNTUK MEMBUKA MODAL FOTO
+        function openPhoto(url, nama, nip, tgl) {
+            if(!url || url.includes('ui-avatars')) return alert("Foto tidak tersedia.");
+            document.getElementById('modal-img').src = url;
+            document.getElementById('modal-name').innerText = nama;
+            document.getElementById('modal-desc').innerText = `NIP: ${nip} | TANGGAL: ${tgl}`;
+            document.getElementById('photo-modal').classList.remove('hidden');
+            document.getElementById('photo-modal').classList.add('flex');
+        }
+
+        // FUNGSI UNTUK MENUTUP MODAL
+        function closeModal() {
+            document.getElementById('photo-modal').classList.add('hidden');
+            document.getElementById('photo-modal').classList.remove('flex');
+        }
+
         async function loadData() {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-400 italic">Mencari data...</td></tr>';
@@ -87,7 +119,6 @@
             try {
                 let query = dbSupabase.from('laporan_absen').select('*');
 
-                // Terapkan Filter jika diisi
                 if (filterMulai) query = query.gte('tanggal', filterMulai);
                 if (filterSampai) query = query.lte('tanggal', filterSampai);
 
@@ -103,21 +134,23 @@
                 }
 
                 data.forEach((row, index) => {
-                    // Format Jam Masuk dari created_at
                     const dateObj = new Date(row.created_at);
                     const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    
-                    // Gunakan tanggal dari kolom 'tanggal' (YYYY-MM-DD) agar lebih konsisten
                     const tglTampil = row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-';
-                    
                     const jamPulang = row.jam_pulang || '--:--';
                     const isLate = jamMasuk > "06:30";
+                    
+                    // URL Foto (Fallback jika kosong)
+                    const userPhoto = row.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
                             <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
                             <td class="p-4 text-center">
-                               <img src="${row.foto_url || 'https://ui-avatars.com/api/?name='+row.nama}" class="w-10 h-10 rounded-full shadow-sm mx-auto object-cover border border-gray-200">
+                               <img src="${userPhoto}" 
+                                    onclick="openPhoto('${row.foto_url}', '${row.nama}', '${row.nip}', '${tglTampil}')"
+                                    class="w-10 h-12 rounded shadow-sm mx-auto object-cover border border-gray-200 cursor-zoom-in hover:brightness-75 transition"
+                                    title="Klik untuk perbesar">
                             </td>
                             <td class="p-4">
                                 <div class="font-bold text-gray-800 text-sm">${row.nama || '-'}</div>
@@ -167,16 +200,11 @@
 
         function exportToExcel() {
             const table = document.getElementById("attendance-table");
-            
-            // Buat Clone Tabel untuk membersihkan kolom "Aksi" saat export
             const cloneTable = table.cloneNode(true);
             cloneTable.querySelectorAll('.no-export').forEach(el => el.remove());
-
             const ws = XLSX.utils.table_to_sheet(cloneTable);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
-            
-            // Format Nama File dengan Tanggal Sekarang
             const dateStr = new Date().toISOString().split('T')[0];
             XLSX.writeFile(wb, `Rekap_Absensi_Citanduy_${dateStr}.xlsx`);
         }
@@ -188,7 +216,6 @@
             document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
         }, 1000);
 
-        // Load data pertama kali saat halaman dibuka
         window.onload = loadData;
     </script>
 </body>
