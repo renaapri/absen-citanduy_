@@ -10,6 +10,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .late-badge { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .ontime-badge { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
     </style>
 </head>
 <body class="bg-[#f4f7f6]">
@@ -36,12 +38,12 @@
                 <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
             </div>
             <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition flex items-center gap-2">
-                <span class="text-sm">🔍</span> CARI DATA
+                🔍 CARI DATA
             </button>
-            <button onclick="window.location.reload()" class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
+            <button onclick="resetFilter()" class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
             
             <button onclick="exportToExcel()" class="ml-auto bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] transition flex items-center gap-2 shadow-sm">
-                <span>📊</span> EXPORT EXCEL
+                📊 EXPORT EXCEL
             </button>
         </div>
 
@@ -76,52 +78,56 @@
         const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function loadData() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-400 italic">Mencari data...</td></tr>';
+
+            const filterMulai = document.getElementById('filter-mulai').value;
+            const filterSampai = document.getElementById('filter-sampai').value;
+
             try {
-                const { data, error } = await dbSupabase
-                    .from('laporan_absen')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                let query = dbSupabase.from('laporan_absen').select('*');
+
+                // Terapkan Filter jika diisi
+                if (filterMulai) query = query.gte('tanggal', filterMulai);
+                if (filterSampai) query = query.lte('tanggal', filterSampai);
+
+                const { data, error } = await query.order('tanggal', { ascending: false }).order('created_at', { ascending: false });
 
                 if (error) throw error;
 
-                const tbody = document.getElementById('table-body');
                 tbody.innerHTML = '';
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500 font-bold italic">TIDAK ADA DATA</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500 font-bold italic">TIDAK ADA DATA DITEMUKAN</td></tr>';
                     return;
                 }
 
                 data.forEach((row, index) => {
+                    // Format Jam Masuk dari created_at
                     const dateObj = new Date(row.created_at);
-                    const tgl = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
                     
-                    // Ambil data jam_pulang dari database, tampilkan --:-- jika belum absen pulang
-                    const jamPulang = row.jam_pulang || '--:--';
+                    // Gunakan tanggal dari kolom 'tanggal' (YYYY-MM-DD) agar lebih konsisten
+                    const tglTampil = row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-';
                     
-                    const namaPegawai = row.nama || '-';
-                    const nipPegawai = row.nip || '-';
-                    const jabatanPegawai = row.jabatan || '-';
-
-                    // LOGIKA JAM TERLAMBAT (06:30)
+                    const jamPulang = row.jam_pulang || '--:--';
                     const isLate = jamMasuk > "06:30";
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
                             <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
                             <td class="p-4 text-center">
-                               <img src="${row.foto_url}" class="w-10 h-12 rounded shadow-sm mx-auto object-cover border border-gray-100" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(namaPegawai)}&background=random'">
+                               <img src="${row.foto_url || 'https://ui-avatars.com/api/?name='+row.nama}" class="w-10 h-10 rounded-full shadow-sm mx-auto object-cover border border-gray-200">
                             </td>
                             <td class="p-4">
-                                <div class="font-bold text-gray-800 text-sm">${namaPegawai}</div>
-                                <div class="text-[9px] text-gray-400 font-bold">NIP. ${nipPegawai}</div>
+                                <div class="font-bold text-gray-800 text-sm">${row.nama || '-'}</div>
+                                <div class="text-[9px] text-gray-400 font-bold">NIP. ${row.nip || '-'}</div>
                             </td>
-                            <td class="p-4 text-[10px] text-gray-600 font-bold">${jabatanPegawai}</td>
-                            <td class="p-4 text-center font-bold text-gray-500">${tgl}</td>
+                            <td class="p-4 text-[10px] text-gray-600 font-bold">${row.jabatan || '-'}</td>
+                            <td class="p-4 text-center font-bold text-gray-500">${tglTampil}</td>
                             <td class="p-4 text-center">
                                 <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jamMasuk}</div>
-                                <div class="text-[8px] font-black italic ${isLate ? 'text-red-500' : 'text-green-500'}">
+                                <div class="text-[8px] px-1 rounded inline-block font-black ${isLate ? 'late-badge' : 'ontime-badge'}">
                                     ${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}
                                 </div>
                             </td>
@@ -129,8 +135,8 @@
                                 ${jamPulang}
                             </td>
                             <td class="p-4 text-center">
-                                <span class="bg-[#00c0a3] text-white px-4 py-1.5 rounded font-black text-[9px] shadow-sm">
-                                    ${jamPulang !== '--:--' ? 'SUDAH PULANG' : 'HADIR'}
+                                <span class="${jamPulang !== '--:--' ? 'bg-blue-500' : 'bg-green-500'} text-white px-3 py-1 rounded font-black text-[9px] shadow-sm">
+                                    ${jamPulang !== '--:--' ? 'SELESAI' : 'HADIR'}
                                 </span>
                             </td>
                             <td class="p-4 text-center no-export">
@@ -141,31 +147,38 @@
                 });
             } catch (error) {
                 console.error("Gagal ambil data:", error.message);
-                document.getElementById('table-body').innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-500 font-bold">ERROR: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-500 font-bold">ERROR: ${error.message}</td></tr>`;
             }
         }
 
         async function hapusData(id) {
             if (confirm('Hapus data absensi ini secara permanen?')) {
-                const { error } = await dbSupabase
-                    .from('laporan_absen')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) {
-                    alert('Gagal menghapus: ' + error.message);
-                } else {
-                    loadData(); 
-                }
+                const { error } = await dbSupabase.from('laporan_absen').delete().eq('id', id);
+                if (error) alert('Gagal menghapus: ' + error.message);
+                else loadData();
             }
+        }
+
+        function resetFilter() {
+            document.getElementById('filter-mulai').value = '';
+            document.getElementById('filter-sampai').value = '';
+            loadData();
         }
 
         function exportToExcel() {
             const table = document.getElementById("attendance-table");
-            const ws = XLSX.utils.table_to_sheet(table);
+            
+            // Buat Clone Tabel untuk membersihkan kolom "Aksi" saat export
+            const cloneTable = table.cloneNode(true);
+            cloneTable.querySelectorAll('.no-export').forEach(el => el.remove());
+
+            const ws = XLSX.utils.table_to_sheet(cloneTable);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
-            XLSX.writeFile(wb, "Rekap_Absensi_Citanduy.xlsx");
+            
+            // Format Nama File dengan Tanggal Sekarang
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Rekap_Absensi_Citanduy_${dateStr}.xlsx`);
         }
 
         setInterval(() => {
@@ -175,7 +188,8 @@
             document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
         }, 1000);
 
-        loadData();
+        // Load data pertama kali saat halaman dibuka
+        window.onload = loadData;
     </script>
 </body>
 </html>
