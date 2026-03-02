@@ -28,16 +28,16 @@
         <div class="bg-white p-6 shadow-sm flex flex-wrap gap-4 items-end border-x">
             <div class="space-y-1">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase">Mulai Tanggal</label>
-                <input type="date" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
+                <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
             </div>
             <div class="space-y-1">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
-                <input type="date" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
+                <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
             </div>
-            <button class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition flex items-center gap-2">
+            <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition flex items-center gap-2">
                 <span class="text-sm">🔍</span> CARI DATA
             </button>
-            <button class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
+            <button onclick="window.location.reload()" class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
             
             <button class="ml-auto bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] transition flex items-center gap-2 shadow-sm">
                 <span>📊</span> EXPORT EXCEL
@@ -60,54 +60,71 @@
                     </tr>
                 </thead>
                 <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100">
-                    </tbody>
+                    <tr>
+                        <td colspan="9" class="p-10 text-center text-gray-400 italic">Memuat data dari database...</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // MASUKKAN KREDENSIAL SUPABASE KAMU DISINI
-        const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co';
-        const SB_KEY = 'sb_publishable_jye1AjnIADhnjyFo7qWPJw_fTPSStcp';
-        const supabase = supabase.createClient(SB_URL, SB_KEY);
+        // Gunakan nama variabel yang berbeda, misalnya 'dbSupabase'
+const SB_URL = 'https://URL_ASLI_KAMU.supabase.co'; 
+const SB_KEY = 'KEY_ANON_ASLI_KAMU';
+const dbSupabase = supabase.createClient(SB_URL, SB_KEY); // Ganti variabel di sini
 
-        async function loadData() {
-            const { data, error } = await supabase
-                .from('laporan_absen') // Mengambil dari tabel laporan_absen
-                .select('*')
-                .order('created_at', { ascending: false });
+async function loadData() {
+    // Panggil variabel dbSupabase yang baru
+    const { data, error } = await dbSupabase
+        .from('laporan_absen')
+        .select('*')
+        .order('created_at', { ascending: false });
+    
+    // ... sisa kode lainnya tetap sama
+}
 
             if (error) {
-                console.error("Gagal ambil data:", error);
+                console.error("Gagal ambil data:", error.message);
+                document.getElementById('table-body').innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-500">Error: ${error.message}</td></tr>`;
                 return;
             }
 
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500 font-bold">TIDAK ADA DATA ABSENSI</td></tr>';
+                return;
+            }
+
             data.forEach((row, index) => {
                 const dateObj = new Date(row.created_at);
-                const tgl = dateObj.toLocaleDateString('id-ID');
-                const jam = dateObj.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                const tgl = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const jam = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
                 
-                // Logika status keterlambatan (Contoh: Jam Masuk max 07:30)
+                // Cek apakah kolom di database kamu huruf besar/kecilnya sama
+                const namaPegawai = row.nama || 'Tanpa Nama';
+                const nipPegawai = row.nip || '000000000000';
+                const jabatanPegawai = row.jabatan || 'Staf';
+
                 const isLate = jam > "07:30";
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 transition uppercase border-b">
                         <td class="p-4 text-center font-semibold text-gray-500">${index + 1}</td>
                         <td class="p-4 text-center">
-                            <img src="https://ui-avatars.com/api/?name=${row.nama}&background=random" class="w-10 h-12 rounded shadow-sm mx-auto">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(namaPegawai)}&background=random" class="w-10 h-12 rounded shadow-sm mx-auto">
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-gray-800 text-sm">${row.nama}</div>
-                            <div class="text-[9px] text-gray-400">NIP. ${row.nip || '000000000000'}</div>
+                            <div class="font-bold text-gray-800 text-sm">${namaPegawai}</div>
+                            <div class="text-[9px] text-gray-400 font-bold">NIP. ${nipPegawai}</div>
                         </td>
-                        <td class="p-4 text-[10px] text-gray-600 font-semibold">${row.jabatan}</td>
+                        <td class="p-4 text-[10px] text-gray-600 font-bold">${jabatanPegawai}</td>
                         <td class="p-4 text-center font-bold text-gray-500">${tgl}</td>
                         <td class="p-4 text-center">
                             <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jam}</div>
-                            <div class="text-[9px] font-black italic ${isLate ? 'text-red-500' : 'text-green-500'}">
+                            <div class="text-[8px] font-black italic ${isLate ? 'text-red-500' : 'text-green-500'}">
                                 ${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}
                             </div>
                         </td>
@@ -116,20 +133,22 @@
                             <span class="bg-[#00c0a3] text-white px-4 py-1.5 rounded font-black text-[9px] shadow-sm">HADIR</span>
                         </td>
                         <td class="p-4 text-center">
-                            <button class="text-red-400 hover:text-red-600 transition text-lg">🗑️</button>
+                            <button onclick="hapusData(${row.id})" class="text-red-400 hover:text-red-600 transition text-lg">🗑️</button>
                         </td>
                     </tr>
                 `;
             });
-        }
+        
 
         // Jam digital di header
         setInterval(() => {
             const now = new Date();
-            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID').replace(/:/g, '.');
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/:/g, '.');
+            document.getElementById('live-clock').innerText = timeStr;
             document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
         }, 1000);
 
+        // Jalankan fungsi
         loadData();
     </script>
 </body>
