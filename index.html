@@ -150,9 +150,9 @@
         const infoWaktu = document.getElementById('info-waktu');
         
         // KUNCI PULANG: Terbuka mulai jam 14:00
-        if (jam < 10) {
+        if (jam < 14) {
             btnPulang.disabled = true;
-            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 10:35</span>";
+            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 14:00</span>";
         } else {
             btnPulang.disabled = false;
             infoWaktu.innerHTML = "🔓 <span class='text-success'>Waktu Pulang Telah Tiba</span>";
@@ -163,94 +163,70 @@
     updateWaktu();
 
     async function kirimData(statusAbsen) {
-    const nip = document.getElementById('nip').value.trim();
-    const nama = document.getElementById('nama').value;
-    const jabatan = document.getElementById('jabatan').value;
-    const fotoFile = document.getElementById('foto').files[0];
+        const nip = document.getElementById('nip').value;
+        const nama = document.getElementById('nama').value;
+        const jabatan = document.getElementById('jabatan').value;
+        const fotoFile = document.getElementById('foto').files[0];
 
-    if (!nip || !nama) {
-        alert("NIP dan Nama harus diisi!");
-        return;
-    }
+        if (!nip || !nama || !jabatan) {
+            alert("⚠️ Harap isi NIP, Nama, dan Jabatan!");
+            return;
+        }
 
-    document.getElementById('loader').style.display = 'flex';
+        if (statusAbsen === 'Masuk' && !fotoFile) {
+            alert("⚠️ Foto selfie wajib diunggah untuk Absen Masuk!");
+            return;
+        }
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-        const koordinat = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-        const sekarang = new Date();
-        
-        // Format tanggal lokal (YYYY-MM-DD) agar sinkron antara Masuk & Pulang
-        const tglHariIni = sekarang.toLocaleDateString('en-CA'); 
-        const jamSekarang = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+        document.getElementById('loader').style.display = 'flex';
 
-        try {
-            if (statusAbsen === 'Masuk') {
-                // --- PROSES ABSEN MASUK ---
-                // Cek dulu apakah NIP ini sudah ada di tanggal ini
-                const { data: cek } = await _supabase
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const koordinat = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+            let publicFotoUrl = "";
+
+            try {
+                if (fotoFile) {
+                    const fileExt = fotoFile.name.split('.').pop();
+                    const fileName = `${Date.now()}_${nip}.${fileExt}`;
+                    
+                    const { data: uploadData, error: uploadError } = await _supabase
+                        .storage
+                        .from('foto-absen')
+                        .upload(fileName, fotoFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = _supabase.storage.from('foto-absen').getPublicUrl(fileName);
+                    publicFotoUrl = urlData.publicUrl;
+                }
+
+                const { error: dbError } = await _supabase
                     .from('laporan_absen')
-                    .select('id')
-                    .eq('nip', nip)
-                    .eq('tanggal', tglHariIni)
-                    .maybeSingle();
-
-                if (cek) {
-                    alert("Anda sudah absen masuk hari ini!");
-                } else {
-                    let publicFotoUrl = "";
-                    if (fotoFile) {
-                        const fileName = `${Date.now()}_${nip}.jpg`;
-                        await _supabase.storage.from('foto-absen').upload(fileName, fotoFile);
-                        publicFotoUrl = _supabase.storage.from('foto-absen').getPublicUrl(fileName).data.publicUrl;
-                    }
-
-                    await _supabase.from('laporan_absen').insert([{ 
-                        nip, nama, jabatan, 
-                        tanggal: tglHariIni, // Simpan tanggal manual
-                        status: 'Hadir', 
-                        lokasi: koordinat, 
+                    .insert([{ 
+                        nip: nip, 
+                        nama: nama, 
+                        jabatan: jabatan, 
+                        status: statusAbsen, 
+                        lokasi: koordinat,
                         foto_url: publicFotoUrl 
                     }]);
-                    alert("Berhasil Absen Masuk!");
-                }
-            } else {
-                // --- PROSES ABSEN PULANG ---
-                // Cari baris yang NIP dan TANGGAL-nya sama dengan hari ini
-                const { data: barisPagi, error: errCari } = await _supabase
-                    .from('laporan_absen')
-                    .select('id')
-                    .eq('nip', nip)
-                    .eq('tanggal', tglHariIni)
-                    .maybeSingle();
 
-                if (!barisPagi) {
-                    // Jika tidak ketemu baris pagi, jangan buat baris baru!
-                    alert("Data masuk tidak ditemukan! Anda harus absen masuk dulu.");
-                } else {
-                    // Jika ketemu, UPDATE baris tersebut menggunakan ID-nya
-                    const { error: errUp } = await _supabase
-                        .from('laporan_absen')
-                        .update({ 
-                            jam_pulang: jamSekarang, 
-                            lokasi_pulang: koordinat 
-                        })
-                        .eq('id', barisPagi.id); // Kuncinya: Update berdasarkan ID unik baris pagi
+                if (dbError) throw dbError;
 
-                    if (errUp) throw errUp;
-                    alert("Berhasil Absen Pulang!");
-                }
+                alert(`✅ Berhasil Absen ${statusAbsen}!\nLokasi Terdeteksi.`);
+                location.reload();
+
+            } catch (err) {
+                alert("❌ Gagal Sistem: " + err.message);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
             }
-            location.reload();
-        } catch (err) {
-            alert("Kesalahan sistem: " + err.message);
-        } finally {
+
+        }, (err) => {
             document.getElementById('loader').style.display = 'none';
-        }
-    }, (err) => {
-        alert("GPS tidak aktif!");
-        document.getElementById('loader').style.display = 'none';
-    });
-}
+            alert("❌ Gagal! Izin GPS ditolak atau sinyal lemah. Pastikan GPS HP aktif.");
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    }
 </script>
 </body>
 </html>
