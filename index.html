@@ -150,9 +150,9 @@
         const infoWaktu = document.getElementById('info-waktu');
         
         // KUNCI PULANG: Terbuka mulai jam 14:00
-        if (jam < 10) {
+        if (jam < 14) {
             btnPulang.disabled = true;
-            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 10:15</span>";
+            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 14:00</span>";
         } else {
             btnPulang.disabled = false;
             infoWaktu.innerHTML = "🔓 <span class='text-success'>Waktu Pulang Telah Tiba</span>";
@@ -163,13 +163,13 @@
     updateWaktu();
 
     async function kirimData(statusAbsen) {
-    const nip = document.getElementById('nip').value;
+    const nip = document.getElementById('nip').value.trim();
     const nama = document.getElementById('nama').value;
     const jabatan = document.getElementById('jabatan').value;
     const fotoFile = document.getElementById('foto').files[0];
 
-    if (!nip || !nama || !jabatan) {
-        alert("⚠️ Harap isi NIP, Nama, dan Jabatan!");
+    if (!nip || !nama) {
+        alert("NIP dan Nama harus diisi!");
         return;
     }
 
@@ -178,69 +178,78 @@
     navigator.geolocation.getCurrentPosition(async (pos) => {
         const koordinat = `${pos.coords.latitude}, ${pos.coords.longitude}`;
         const sekarang = new Date();
-        const tglHariIni = sekarang.toISOString().split('T')[0]; // Format: 2026-03-02
+        
+        // Format tanggal lokal (YYYY-MM-DD) agar sinkron antara Masuk & Pulang
+        const tglHariIni = sekarang.toLocaleDateString('en-CA'); 
         const jamSekarang = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
 
         try {
             if (statusAbsen === 'Masuk') {
-                // --- LOGIKA ABSEN MASUK (Insert Baris Baru) ---
-                let publicFotoUrl = "";
-                if (fotoFile) {
-                    const fileName = `${Date.now()}_${nip}.jpg`;
-                    const { error: upError } = await _supabase.storage.from('foto-absen').upload(fileName, fotoFile);
-                    if (upError) throw upError;
-                    publicFotoUrl = _supabase.storage.from('foto-absen').getPublicUrl(fileName).data.publicUrl;
-                }
-
-                const { error: inError } = await _supabase
-                    .from('laporan_absen')
-                    .insert([{ 
-                        nip, nama, jabatan, status: 'Hadir', lokasi: koordinat, foto_url: publicFotoUrl 
-                    }]);
-                
-                if (inError) throw inError;
-                alert("✅ Berhasil Absen Masuk!");
-
-            } else {
-                // --- LOGIKA ABSEN PULANG (Update Baris Hari Ini) ---
-                // 1. Cari dulu data absen masuk si NIP ini untuk HARI INI
-                const { data: dataMasuk, error: fetchError } = await _supabase
+                // --- PROSES ABSEN MASUK ---
+                // Cek dulu apakah NIP ini sudah ada di tanggal ini
+                const { data: cek } = await _supabase
                     .from('laporan_absen')
                     .select('id')
                     .eq('nip', nip)
-                    .gte('created_at', `${tglHariIni}T00:00:00`)
-                    .lte('created_at', `${tglHariIni}T23:59:59`)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
+                    .eq('tanggal', tglHariIni)
+                    .maybeSingle();
 
-                if (fetchError || !dataMasuk) {
-                    alert("❌ Data masuk tidak ditemukan! Kamu harus absen masuk dulu pagi tadi.");
-                    return;
+                if (cek) {
+                    alert("Anda sudah absen masuk hari ini!");
+                } else {
+                    let publicFotoUrl = "";
+                    if (fotoFile) {
+                        const fileName = `${Date.now()}_${nip}.jpg`;
+                        await _supabase.storage.from('foto-absen').upload(fileName, fotoFile);
+                        publicFotoUrl = _supabase.storage.from('foto-absen').getPublicUrl(fileName).data.publicUrl;
+                    }
+
+                    await _supabase.from('laporan_absen').insert([{ 
+                        nip, nama, jabatan, 
+                        tanggal: tglHariIni, // Simpan tanggal manual
+                        status: 'Hadir', 
+                        lokasi: koordinat, 
+                        foto_url: publicFotoUrl 
+                    }]);
+                    alert("Berhasil Absen Masuk!");
                 }
-
-                // 2. Update baris tersebut dengan jam pulang dan lokasi pulang
-                const { error: upError } = await _supabase
+            } else {
+                // --- PROSES ABSEN PULANG ---
+                // Cari baris yang NIP dan TANGGAL-nya sama dengan hari ini
+                const { data: barisPagi, error: errCari } = await _supabase
                     .from('laporan_absen')
-                    .update({ 
-                        jam_pulang: jamSekarang, 
-                        lokasi_pulang: koordinat 
-                    })
-                    .eq('id', dataMasuk.id);
+                    .select('id')
+                    .eq('nip', nip)
+                    .eq('tanggal', tglHariIni)
+                    .maybeSingle();
 
-                if (upError) throw upError;
-                alert("✅ Berhasil Absen Pulang!");
+                if (!barisPagi) {
+                    // Jika tidak ketemu baris pagi, jangan buat baris baru!
+                    alert("Data masuk tidak ditemukan! Anda harus absen masuk dulu.");
+                } else {
+                    // Jika ketemu, UPDATE baris tersebut menggunakan ID-nya
+                    const { error: errUp } = await _supabase
+                        .from('laporan_absen')
+                        .update({ 
+                            jam_pulang: jamSekarang, 
+                            lokasi_pulang: koordinat 
+                        })
+                        .eq('id', barisPagi.id); // Kuncinya: Update berdasarkan ID unik baris pagi
+
+                    if (errUp) throw errUp;
+                    alert("Berhasil Absen Pulang!");
+                }
             }
             location.reload();
         } catch (err) {
-            alert("❌ Gagal: " + err.message);
+            alert("Kesalahan sistem: " + err.message);
         } finally {
             document.getElementById('loader').style.display = 'none';
         }
     }, (err) => {
+        alert("GPS tidak aktif!");
         document.getElementById('loader').style.display = 'none';
-        alert("❌ Gagal GPS! Pastikan GPS HP aktif.");
-    }, { enableHighAccuracy: true });
+    });
 }
 </script>
 </body>
