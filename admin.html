@@ -70,7 +70,6 @@
     </div>
 
    <script>
-        // KREDENSIAL SUPABASE
         const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcnhycHVlb3Zqem5nbGl3bHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjQ0MDMsImV4cCI6MjA4NzU0MDQwM30.RSwl-CzjWlk3n4ifLl3gJdiFa3HltwasQKWDYvvJBks';
         
@@ -101,9 +100,10 @@
                     const namaPegawai = row.nama || '-';
                     const nipPegawai = row.nip || '-';
                     const jabatanPegawai = row.jabatan || '-';
-                    const isLate = jam > "07:30";
 
-                    // Perbaikan: Menggunakan row.foto_url sesuai dengan kolom di database kamu
+                    // LOGIKA JAM TERLAMBAT (06:30)
+                    const isLate = jam > "06:30";
+
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
                             <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
