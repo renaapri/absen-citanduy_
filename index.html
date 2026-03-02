@@ -149,15 +149,14 @@
         const btnPulang = document.getElementById('btnPulang');
         const infoWaktu = document.getElementById('info-waktu');
         
-        // KUNCI PULANG: Terbuka mulai jam 14:00
-        if (jam < 14) {
+        // KUNCI PULANG: Terbuka mulai jam 12:35
+        if (jam < 12 || (jam === 12 && menit < 35)) {
             btnPulang.disabled = true;
-            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 14:00</span>";
+            infoWaktu.innerHTML = "🔒 <span class='text-danger'>Tombol Pulang Terkunci s/d Jam 12:35</span>";
         } else {
             btnPulang.disabled = false;
             infoWaktu.innerHTML = "🔓 <span class='text-success'>Waktu Pulang Telah Tiba</span>";
         }
-    }
     
     setInterval(updateWaktu, 1000);
     updateWaktu();
@@ -230,4 +229,5 @@
 </script>
 </body>
 </html>
+
 
