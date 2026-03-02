@@ -69,11 +69,14 @@
         </div>
     </div>
 
-    <script>
-       // KREDENSIAL SUPABASE (SUDAH DIPERBAIKI)
+   <script>
+        // KREDENSIAL SUPABASE (SUDAH DISAMAKAN VARIABELNYA)
         const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
         const SB_KEY = 'sb_publishable_jye1AjnIADhnjyFo7qWPJw_fTPSStcp';
+        
+        // Membuat koneksi
         const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
+
         // FUNGSI LOAD DATA
         async function loadData() {
             try {
@@ -147,7 +150,7 @@
                 if (error) {
                     alert('Gagal menghapus: ' + error.message);
                 } else {
-                    loadData(); // Segarkan tabel
+                    loadData(); 
                 }
             }
         }
@@ -173,4 +176,5 @@
     </script>
 </body>
 </html>
+
 
