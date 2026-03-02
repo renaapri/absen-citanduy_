@@ -93,7 +93,6 @@
         
         const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // FUNGSI PERBESAR FOTO (SUDAH DIPERBAIKI)
         function perbesarFoto(url, nama) {
             const modal = document.getElementById('photo-modal');
             const modalImg = document.getElementById('modal-img');
@@ -145,9 +144,12 @@
                     const dateObj = new Date(row.created_at);
                     const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
                     const tglTampil = row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-';
-                    const jamPulang = row.jam_pulang || '--:--';
-                    const isLate = jamMasuk > "06:30";
                     
+                    // --- TESTING: JAM PULANG DIUBAH JADI 07:00 ---
+                    const jamPulang = "07:00"; 
+                    // ---------------------------------------------
+
+                    const isLate = jamMasuk > "06:30";
                     const fotoUrl = row.foto_url ? row.foto_url : `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
 
                     tbody.innerHTML += `
@@ -173,8 +175,8 @@
                             </td>
                             <td class="p-4 text-center font-black text-sm text-blue-600">${jamPulang}</td>
                             <td class="p-4 text-center">
-                                <span class="${jamPulang !== '--:--' ? 'bg-blue-500' : 'bg-green-500'} text-white px-3 py-1 rounded font-black text-[9px] shadow-sm">
-                                    ${jamPulang !== '--:--' ? 'SELESAI' : 'HADIR'}
+                                <span class="bg-blue-500 text-white px-3 py-1 rounded font-black text-[9px] shadow-sm">
+                                    SELESAI
                                 </span>
                             </td>
                             <td class="p-4 text-center no-export">
