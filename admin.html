@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Rekapitulasi Absensi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#f4f7f6]">
+
+    <div class="max-w-[1400px] mx-auto p-6">
+        <div class="bg-[#005a32] text-white p-5 rounded-t-xl flex justify-between items-end shadow-lg">
+            <div>
+                <h1 class="font-bold text-2xl tracking-tight">REKAPITULASI ABSENSI</h1>
+                <p class="text-xs font-light opacity-80 tracking-widest">UPTD PSDA WS CITANDUY</p>
+            </div>
+            <div class="text-right">
+                <p id="live-clock" class="text-2xl font-semibold tracking-tighter">00.00.00</p>
+                <p id="live-date" class="text-[10px] uppercase tracking-wider">01 January 2026</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 shadow-sm flex flex-wrap gap-4 items-end border-x">
+            <div class="space-y-1">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase">Mulai Tanggal</label>
+                <input type="date" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
+                <input type="date" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
+            </div>
+            <button class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition flex items-center gap-2">
+                <span class="text-sm">🔍</span> CARI DATA
+            </button>
+            <button class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
+            
+            <button class="ml-auto bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] transition flex items-center gap-2 shadow-sm">
+                <span>📊</span> EXPORT EXCEL
+            </button>
+        </div>
+
+        <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-b">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#004d2c] text-white text-[10px] font-bold uppercase tracking-wider">
+                        <th class="p-4 text-center border-r border-white/10 w-12">No</th>
+                        <th class="p-4 text-center border-r border-white/10 w-20">Foto</th>
+                        <th class="p-4 border-r border-white/10">Data Pegawai</th>
+                        <th class="p-4 border-r border-white/10">Jabatan</th>
+                        <th class="p-4 text-center border-r border-white/10">Tanggal</th>
+                        <th class="p-4 text-center border-r border-white/10">Masuk</th>
+                        <th class="p-4 text-center border-r border-white/10">Pulang</th>
+                        <th class="p-4 text-center border-r border-white/10">Status</th>
+                        <th class="p-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN KREDENSIAL SUPABASE KAMU DISINI
+        const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co';
+        const SB_KEY = 'sb_publishable_jye1AjnIADhnjyFo7qWPJw_fTPSStcp';
+        const supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function loadData() {
+            const { data, error } = await supabase
+                .from('laporan_absen') // Mengambil dari tabel laporan_absen
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Gagal ambil data:", error);
+                return;
+            }
+
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            data.forEach((row, index) => {
+                const dateObj = new Date(row.created_at);
+                const tgl = dateObj.toLocaleDateString('id-ID');
+                const jam = dateObj.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                
+                // Logika status keterlambatan (Contoh: Jam Masuk max 07:30)
+                const isLate = jam > "07:30";
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition uppercase border-b">
+                        <td class="p-4 text-center font-semibold text-gray-500">${index + 1}</td>
+                        <td class="p-4 text-center">
+                            <img src="https://ui-avatars.com/api/?name=${row.nama}&background=random" class="w-10 h-12 rounded shadow-sm mx-auto">
+                        </td>
+                        <td class="p-4">
+                            <div class="font-bold text-gray-800 text-sm">${row.nama}</div>
+                            <div class="text-[9px] text-gray-400">NIP. ${row.nip || '000000000000'}</div>
+                        </td>
+                        <td class="p-4 text-[10px] text-gray-600 font-semibold">${row.jabatan}</td>
+                        <td class="p-4 text-center font-bold text-gray-500">${tgl}</td>
+                        <td class="p-4 text-center">
+                            <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jam}</div>
+                            <div class="text-[9px] font-black italic ${isLate ? 'text-red-500' : 'text-green-500'}">
+                                ${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}
+                            </div>
+                        </td>
+                        <td class="p-4 text-center text-gray-300">--:--</td>
+                        <td class="p-4 text-center">
+                            <span class="bg-[#00c0a3] text-white px-4 py-1.5 rounded font-black text-[9px] shadow-sm">HADIR</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <button class="text-red-400 hover:text-red-600 transition text-lg">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Jam digital di header
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID').replace(/:/g, '.');
+            document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+        }, 1000);
+
+        loadData();
+    </script>
+</body>
+</html>
