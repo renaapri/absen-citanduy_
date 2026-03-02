@@ -70,14 +70,12 @@
     </div>
 
    <script>
-        // KREDENSIAL SUPABASE (SUDAH DISAMAKAN VARIABELNYA)
+        // KREDENSIAL SUPABASE
         const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcnhycHVlb3Zqem5nbGl3bHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjQ0MDMsImV4cCI6MjA4NzU0MDQwM30.RSwl-CzjWlk3n4ifLl3gJdiFa3HltwasQKWDYvvJBks';
         
-        // Membuat koneksi
         const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // FUNGSI LOAD DATA
         async function loadData() {
             try {
                 const { data, error } = await dbSupabase
@@ -105,11 +103,12 @@
                     const jabatanPegawai = row.jabatan || '-';
                     const isLate = jam > "07:30";
 
+                    // Perbaikan: Menggunakan row.foto_url sesuai dengan kolom di database kamu
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
                             <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
                             <td class="p-4 text-center">
-                               <img src="${row.foto}" class="w-10 h-12 rounded shadow-sm mx-auto object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(namaPegawai)}&background=random'">
+                               <img src="${row.foto_url}" class="w-10 h-12 rounded shadow-sm mx-auto object-cover border border-gray-100" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(namaPegawai)}&background=random'">
                             </td>
                             <td class="p-4">
                                 <div class="font-bold text-gray-800 text-sm">${namaPegawai}</div>
@@ -139,7 +138,6 @@
             }
         }
 
-        // FUNGSI HAPUS DATA
         async function hapusData(id) {
             if (confirm('Hapus data absensi ini secara permanen?')) {
                 const { error } = await dbSupabase
@@ -155,7 +153,6 @@
             }
         }
 
-        // FUNGSI EXPORT EXCEL
         function exportToExcel() {
             const table = document.getElementById("attendance-table");
             const ws = XLSX.utils.table_to_sheet(table);
@@ -164,7 +161,6 @@
             XLSX.writeFile(wb, "Rekap_Absensi_Citanduy.xlsx");
         }
 
-        // JAM DIGITAL
         setInterval(() => {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/:/g, '.');
@@ -176,6 +172,3 @@
     </script>
 </body>
 </html>
-
-
-
