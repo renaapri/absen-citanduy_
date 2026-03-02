@@ -107,12 +107,11 @@
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                            <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
-                            <td class="p-4 text-center">
-                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(namaPegawai)}&background=random" class="w-10 h-12 rounded shadow-sm mx-auto">
-                            </td>
-                            <td class="p-4">
-                                <div class="font-bold text-gray-800 text-sm">${namaPegawai}</div>
+                          <td class="p-4 text-center">
+                            <img src="${row.foto}" 
+                                class="w-10 h-12 rounded shadow-sm mx-auto object-cover" 
+                                onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(namaPegawai)}&background=random'">
+                        </td>
                                 <div class="text-[9px] text-gray-400 font-bold">NIP. ${nipPegawai}</div>
                             </td>
                             <td class="p-4 text-[10px] text-gray-600 font-bold">${jabatanPegawai}</td>
@@ -176,7 +175,5 @@
     </script>
 </body>
 </html>
-
-
 
 
