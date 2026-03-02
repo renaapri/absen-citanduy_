@@ -1,57 +1,43 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Absensi UPTD Citanduy</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a503a 0%, #1e3c72 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .main-card {
-            background: white;
-            border-radius: 30px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            width: 100%;
-            max-width: 480px;
-            position: relative;
-            overflow: hidden;
-        }
-        .main-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 8px;
-            background: linear-gradient(to right, #27ae60, #2ecc71);
-        }
-        .logo-container {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .logo-img {
-            max-width: 80px;
-            height: auto;
-        }
-        .welcome-text { font-size: 1.1rem; font-weight: 700; color: #666; margin-bottom: 5px; }
-        .form-control, .form-select { border-radius: 12px; padding: 12px; background-color: #f8f9fa; border: 1px solid #eee; font-size: 14px; }
-        .btn-absensi { border-radius: 15px; padding: 15px; font-weight: 700; transition: 0.3s; text-transform: uppercase; border: none; width: 100%; }
-        .btn-masuk { background: linear-gradient(to right, #27ae60, #2ecc71); color: white; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); margin-bottom: 15px; }
-        .btn-pulang { background: #fff; color: #e74c3c; border: 2px solid #e74c3c; }
-        .btn-pulang:disabled { opacity: 0.5; cursor: not-allowed; }
-        #clock { font-size: 1.2rem; font-weight: 700; background: #f1f2f6; color: #2f3542; padding: 5px 15px; border-radius: 10px; display: inline-block; transition: color 0.3s; }
-        .loading-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Absensi UPTD Citanduy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a503a 0%, #1e3c72 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .main-card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+        .logo-container { text-align: center; margin-bottom: 10px; }
+        .logo-img { max-width: 70px; height: auto; }
+        .form-control, .form-select { border-radius: 10px; background-color: #f8f9fa; font-size: 14px; }
+        .btn-absensi { border-radius: 12px; padding: 12px; font-weight: 700; width: 100%; border: none; text-transform: uppercase; }
+        .btn-masuk { background: linear-gradient(to right, #27ae60, #2ecc71); color: white; margin-bottom: 10px; }
+        .btn-pulang { background: #fff; color: #e74c3c; border: 2px solid #e74c3c; }
+        .btn-pulang:disabled { opacity: 0.5; background: #eee; border-color: #ccc; color: #999; }
+        #clock { font-size: 1.1rem; font-weight: 700; background: #f1f2f6; padding: 5px 15px; border-radius: 10px; }
+        .loading-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 100; border-radius: 30px; justify-content: center; align-items: center; flex-direction: column; }
+    </style>
 </head>
 <body>
 
@@ -162,50 +148,53 @@
     setInterval(updateWaktu, 1000);
     updateWaktu();
 
- async function kirimData(statusAbsen) {
+async function kirimData(statusAbsen) {
     const nip = document.getElementById('nip').value.trim();
     const nama = document.getElementById('nama').value;
     const jabatan = document.getElementById('jabatan').value;
     const fotoFile = document.getElementById('foto').files[0];
 
     const sekarang = new Date();
-    const tglLokal = sekarang.toLocaleDateString('en-CA'); 
+    const tglLokal = sekarang.toLocaleDateString('en-CA'); // Format: 2026-03-02
     const jamLokal = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    if (!nip || !nama) return alert("NIP dan Nama wajib diisi!");
 
     document.getElementById('loader').style.display = 'flex';
 
     try {
         if (statusAbsen === 'Masuk') {
-            // PROSES MASUK: Insert baris baru dengan status HADIR
+            // PROSES MASUK: Membuat baris baru
             const { error } = await _supabase.from('laporan_absen').insert([{ 
                 nip, nama, jabatan, 
                 tanggal: tglLokal, 
-                status: 'HADIR'
+                status: 'HADIR' 
             }]);
             if (error) throw error;
-            alert("✅ Berhasil Absen Masuk!");
+            alert("✅ Absen Masuk Berhasil!");
         } else {
-            // PROSES PULANG: Cari baris NIP + TANGGAL hari ini, lalu UPDATE
-            const { data: dataPagi } = await _supabase
+            // PROSES PULANG: Mencari baris yang sama hari ini untuk di-UPDATE
+            const { data: barisPagi, error: errCari } = await _supabase
                 .from('laporan_absen')
                 .select('id')
                 .eq('nip', nip)
                 .eq('tanggal', tglLokal)
                 .maybeSingle();
 
-            if (!dataPagi) {
-                alert("❌ Anda belum absen masuk hari ini!");
+            if (!barisPagi) {
+                alert("❌ Data masuk tidak ditemukan untuk hari ini!");
             } else {
-                const { error } = await _supabase
+                // UPDATE baris tersebut agar status jadi SELESAI
+                const { error: errUp } = await _supabase
                     .from('laporan_absen')
                     .update({ 
                         jam_pulang: jamLokal, 
                         status: 'SELESAI' 
                     })
-                    .eq('id', dataPagi.id);
+                    .eq('id', barisPagi.id);
 
-                if (error) throw error;
-                alert("✅ Berhasil Absen Pulang! Status: SELESAI");
+                if (errUp) throw errUp;
+                alert("✅ Absen Pulang Berhasil! Status: SELESAI");
             }
         }
         location.reload();
@@ -219,4 +208,5 @@
 </body>
 </html>
  
+
 
