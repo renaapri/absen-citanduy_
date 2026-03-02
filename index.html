@@ -162,95 +162,83 @@
     setInterval(updateWaktu, 1000);
     updateWaktu();
 
-    async function kirimData(statusAbsen) {
+  async function kirimData(statusAbsen) {
     const nip = document.getElementById('nip').value.trim();
     const nama = document.getElementById('nama').value;
     const jabatan = document.getElementById('jabatan').value;
     const fotoFile = document.getElementById('foto').files[0];
 
-    if (!nip || !nama) {
-        alert("NIP dan Nama harus diisi!");
-        return;
-    }
-
+    if (!nip || !nama) return alert("NIP dan Nama wajib diisi!");
+    
     document.getElementById('loader').style.display = 'flex';
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
         const koordinat = `${pos.coords.latitude}, ${pos.coords.longitude}`;
         const sekarang = new Date();
-        
-        // Format tanggal lokal (YYYY-MM-DD) agar sinkron antara Masuk & Pulang
         const tglHariIni = sekarang.toLocaleDateString('en-CA'); 
         const jamSekarang = sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
 
         try {
             if (statusAbsen === 'Masuk') {
-                // --- PROSES ABSEN MASUK ---
-                // Cek dulu apakah NIP ini sudah ada di tanggal ini
-                const { data: cek } = await _supabase
-                    .from('laporan_absen')
-                    .select('id')
-                    .eq('nip', nip)
-                    .eq('tanggal', tglHariIni)
-                    .maybeSingle();
+                let publicFotoUrl = "";
+                
+                if (fotoFile) {
+                    const fileName = `${Date.now()}_${nip}.jpg`;
+                    
+                    // PAKAI TANDA STRIP SESUAI SUPABASE KAMU
+                    const { data: uploadData, error: uploadError } = await _supabase.storage
+                        .from('foto-absen') 
+                        .upload(fileName, fotoFile);
 
-                if (cek) {
-                    alert("Anda sudah absen masuk hari ini!");
-                } else {
-                    let publicFotoUrl = "";
-                    if (fotoFile) {
-                        const fileName = `${Date.now()}_${nip}.jpg`;
-                        await _supabase.storage.from('foto-absen').upload(fileName, fotoFile);
-                        publicFotoUrl = _supabase.storage.from('foto-absen').getPublicUrl(fileName).data.publicUrl;
-                    }
+                    if (uploadError) throw uploadError;
 
-                    await _supabase.from('laporan_absen').insert([{ 
-                        nip, nama, jabatan, 
-                        tanggal: tglHariIni, // Simpan tanggal manual
-                        status: 'Hadir', 
-                        lokasi: koordinat, 
-                        foto_url: publicFotoUrl 
-                    }]);
-                    alert("Berhasil Absen Masuk!");
+                    // AMBIL URL JUGA PAKAI TANDA STRIP
+                    const { data: urlData } = _supabase.storage
+                        .from('foto-absen')
+                        .getPublicUrl(fileName);
+                    
+                    publicFotoUrl = urlData.publicUrl;
                 }
+
+                const { error } = await _supabase.from('laporan_absen').insert([{ 
+                    nip, nama, jabatan, 
+                    tanggal: tglHariIni, 
+                    status: 'Hadir', 
+                    lokasi: koordinat, 
+                    foto_url: publicFotoUrl 
+                }]);
+
+                if (error) throw error;
+                alert("Berhasil Absen Masuk!");
             } else {
-                // --- PROSES ABSEN PULANG ---
-                // Cari baris yang NIP dan TANGGAL-nya sama dengan hari ini
-                const { data: barisPagi, error: errCari } = await _supabase
-                    .from('laporan_absen')
+                // Logika Pulang tetap sama
+                const { data: baris } = await _supabase.from('laporan_absen')
                     .select('id')
                     .eq('nip', nip)
                     .eq('tanggal', tglHariIni)
                     .maybeSingle();
 
-                if (!barisPagi) {
-                    // Jika tidak ketemu baris pagi, jangan buat baris baru!
-                    alert("Data masuk tidak ditemukan! Anda harus absen masuk dulu.");
-                } else {
-                    // Jika ketemu, UPDATE baris tersebut menggunakan ID-nya
-                    const { error: errUp } = await _supabase
-                        .from('laporan_absen')
-                        .update({ 
-                            jam_pulang: jamSekarang, 
-                            lokasi_pulang: koordinat 
-                        })
-                        .eq('id', barisPagi.id); // Kuncinya: Update berdasarkan ID unik baris pagi
+                if (!baris) return alert("Data masuk tidak ditemukan!");
 
-                    if (errUp) throw errUp;
-                    alert("Berhasil Absen Pulang!");
-                }
+                const { error } = await _supabase.from('laporan_absen')
+                    .update({ jam_pulang: jamSekarang, lokasi_pulang: koordinat })
+                    .eq('id', baris.id);
+
+                if (error) throw error;
+                alert("Berhasil Absen Pulang!");
             }
             location.reload();
         } catch (err) {
-            alert("Kesalahan sistem: " + err.message);
+            alert("Kesalahan: " + err.message);
         } finally {
             document.getElementById('loader').style.display = 'none';
         }
     }, (err) => {
-        alert("GPS tidak aktif!");
+        alert("Gagal ambil lokasi! Pastikan GPS aktif.");
         document.getElementById('loader').style.display = 'none';
     });
 }
 </script>
 </body>
 </html>
+
