@@ -101,7 +101,7 @@
         <button type="button" onclick="kirimData('Pulang')" id="btnPulang" class="btn btn-absensi btn-pulang mt-2">
             <i class="fas fa-home me-2"></i> Absen Pulang
         </button>
-        <div id="info-waktu" class="text-center mt-3 small text-muted font-monospace">Memeriksa sistem...</div>
+        <div id="info-waktu" class="text-center mt-3 small text-muted font-monospace">Sistem Siap</div>
     </form>
 </div>
 
@@ -120,8 +120,8 @@
         const menit = sekarang.getMinutes();
         const detik = sekarang.getSeconds();
         
-        const jamMenit = `${String(jam).padStart(2, '0')}:${String(menit).padStart(2, '0')}`;
-        document.getElementById('clock').innerText = `${jamMenit}:${String(detik).padStart(2, '0')}`;
+        const jamMenitDetik = `${String(jam).padStart(2, '0')}:${String(menit).padStart(2, '0')}:${String(detik).padStart(2, '0')}`;
+        document.getElementById('clock').innerText = jamMenitDetik;
 
         const greeting = document.getElementById('greeting');
         if (jam >= 6 && jam < 11) greeting.innerText = "Selamat Pagi";
@@ -129,7 +129,7 @@
         else if (jam >= 15 && jam < 18) greeting.innerText = "Selamat Sore";
         else greeting.innerText = "Selamat Malam";
 
-        document.getElementById('info-waktu').innerHTML = "🛠️ <span class='text-primary'>MODE TESTING AKTIF</span>";
+        document.getElementById('info-waktu').innerHTML = "✅ <span class='text-success'>Waktu Real-time Aktif</span>";
     }
     
     setInterval(updateWaktu, 1000);
@@ -170,8 +170,9 @@
                     alert("Berhasil Absen Masuk!");
                 } 
                 else {
-                    // LOGIKA PULANG (DIPERBAIKI)
-                    const jamTestingPulang = "07:00"; 
+                    // AMBIL JAM ASLI SAAT INI
+                    const skrg = new Date();
+                    const jamSekarang = `${String(skrg.getHours()).padStart(2, '0')}:${String(skrg.getMinutes()).padStart(2, '0')}`;
 
                     // 1. Cari data masuk berdasarkan NIP dan Tanggal
                     const { data: baris, error: fetchError } = await _supabase
@@ -182,18 +183,18 @@
                         .maybeSingle();
 
                     if (fetchError) throw fetchError;
-                    if (!baris) return alert("Data masuk untuk NIP ini tidak ditemukan hari ini!");
+                    if (!baris) return alert("Data masuk tidak ditemukan untuk hari ini!");
 
-                    // 2. Update kolom jam_pulang saja (KOLOM lokasi_pulang DIHAPUS karena tidak ada di DB)
+                    // 2. Update jam_pulang dengan jam saat ini
                     const { error: updateError } = await _supabase
                         .from(TABEL)
                         .update({ 
-                            "jam_pulang": jamTestingPulang 
+                            "jam_pulang": jamSekarang 
                         })
                         .eq('id', baris.id);
 
                     if (updateError) throw updateError;
-                    alert("Berhasil Absen Pulang! (Tercatat 07:00)");
+                    alert(`Berhasil Absen Pulang! (Tercatat jam ${jamSekarang})`);
                 }
                 location.reload();
             } catch (err) {
