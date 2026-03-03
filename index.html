@@ -112,7 +112,6 @@
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Definisi nama tabel agar konsisten
     const TABEL = 'laporan_absen';
 
     function updateWaktu() {
@@ -130,8 +129,7 @@
         else if (jam >= 15 && jam < 18) greeting.innerText = "Selamat Sore";
         else greeting.innerText = "Selamat Malam";
 
-        document.getElementById('btnPulang').disabled = false;
-        document.getElementById('info-waktu').innerHTML = "🛠️ <span class='text-primary'>TESTING: Jam Pulang Terkunci 07.00</span>";
+        document.getElementById('info-waktu').innerHTML = "🛠️ <span class='text-primary'>MODE TESTING AKTIF</span>";
     }
     
     setInterval(updateWaktu, 1000);
@@ -170,20 +168,28 @@
 
                     if (error) throw error;
                     alert("Berhasil Absen Masuk!");
-                } else {
-                    // JAM PENGUNCI UNTUK TESTING
+                } 
+                else {
+                    // LOGIKA PULANG (DIPERBAIKI)
                     const jamTestingPulang = "07:00"; 
 
-                    // Cari ID baris absensi user hari ini
-                    const { data: baris, error: fetchError } = await _supabase.from(TABEL)
-                        .select('id').eq('nip', nip).eq('tanggal', tglHariIni).maybeSingle();
+                    // 1. Cari data masuk berdasarkan NIP dan Tanggal
+                    const { data: baris, error: fetchError } = await _supabase
+                        .from(TABEL)
+                        .select('id')
+                        .eq('nip', nip)
+                        .eq('tanggal', tglHariIni)
+                        .maybeSingle();
 
                     if (fetchError) throw fetchError;
-                    if (!baris) return alert("Data masuk hari ini tidak ditemukan!");
+                    if (!baris) return alert("Data masuk untuk NIP ini tidak ditemukan hari ini!");
 
-                    // Update hanya kolom jam_pulang
-                    const { error: updateError } = await _supabase.from(TABEL)
-                        .update({ jam_pulang: jamTestingPulang })
+                    // 2. Update kolom jam_pulang saja (KOLOM lokasi_pulang DIHAPUS karena tidak ada di DB)
+                    const { error: updateError } = await _supabase
+                        .from(TABEL)
+                        .update({ 
+                            "jam_pulang": jamTestingPulang 
+                        })
                         .eq('id', baris.id);
 
                     if (updateError) throw updateError;
@@ -191,7 +197,8 @@
                 }
                 location.reload();
             } catch (err) {
-                alert("Kesalahan: " + err.message);
+                console.error(err);
+                alert("Kesalahan Sistem: " + err.message);
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
