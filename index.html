@@ -135,11 +135,20 @@
     setInterval(updateWaktu, 1000);
     updateWaktu();
 
-    async function kirimData(statusAbsen) {
+   async function kirimData(statusAbsen) {
         const nip = document.getElementById('nip').value.trim();
         const nama = document.getElementById('nama').value;
         const jabatan = document.getElementById('jabatan').value;
         const fotoFile = document.getElementById('foto').files[0];
+
+        // --- PROTEKSI JAM PULANG ---
+        const sekarang = new Date();
+        const jamSekarang = sekarang.getHours();
+
+        if (statusAbsen === 'Pulang' && jamSekarang < 14) {
+            return alert("BELUM WAKTUNYA PULANG! Tombol absen pulang baru bisa digunakan mulai jam 14:00.");
+        }
+        // ---------------------------
 
         if (!nip || !nama) return alert("NIP dan Nama wajib diisi!");
         document.getElementById('loader').style.display = 'flex';
@@ -150,31 +159,28 @@
 
             try {
                 if (statusAbsen === 'Masuk') {
+                    // (Bagian Absen Masuk tetap sama seperti sebelumnya)
                     let publicFotoUrl = "";
                     if (fotoFile) {
                         const fileName = `${Date.now()}_${nip}.jpg`;
                         const { error: uploadError } = await _supabase.storage
                             .from('foto-absen').upload(fileName, fotoFile);
-
                         if (uploadError) throw uploadError;
                         const { data: urlData } = _supabase.storage.from('foto-absen').getPublicUrl(fileName);
                         publicFotoUrl = urlData.publicUrl;
                     }
-
                     const { error } = await _supabase.from(TABEL).insert([{ 
                         nip, nama, jabatan, tanggal: tglHariIni, 
                         status: 'Hadir', lokasi: koordinat, foto_url: publicFotoUrl 
                     }]);
-
                     if (error) throw error;
                     alert("Berhasil Absen Masuk!");
                 } 
                 else {
-                    // AMBIL JAM ASLI SAAT INI
+                    // LOGIKA PULANG REAL-TIME (TETAP MENGIKUTI JAM KLIK)
                     const skrg = new Date();
-                    const jamSekarang = `${String(skrg.getHours()).padStart(2, '0')}:${String(skrg.getMinutes()).padStart(2, '0')}`;
+                    const jamKlik = `${String(skrg.getHours()).padStart(2, '0')}:${String(skrg.getMinutes()).padStart(2, '0')}`;
 
-                    // 1. Cari data masuk berdasarkan NIP dan Tanggal
                     const { data: baris, error: fetchError } = await _supabase
                         .from(TABEL)
                         .select('id')
@@ -185,21 +191,17 @@
                     if (fetchError) throw fetchError;
                     if (!baris) return alert("Data masuk tidak ditemukan untuk hari ini!");
 
-                    // 2. Update jam_pulang dengan jam saat ini
                     const { error: updateError } = await _supabase
                         .from(TABEL)
-                        .update({ 
-                            "jam_pulang": jamSekarang 
-                        })
+                        .update({ "jam_pulang": jamKlik })
                         .eq('id', baris.id);
 
                     if (updateError) throw updateError;
-                    alert(`Berhasil Absen Pulang! (Tercatat jam ${jamSekarang})`);
+                    alert(`Berhasil Absen Pulang! Tercatat jam ${jamKlik}`);
                 }
                 location.reload();
             } catch (err) {
-                console.error(err);
-                alert("Kesalahan Sistem: " + err.message);
+                alert("Kesalahan: " + err.message);
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
@@ -211,3 +213,4 @@
 </script>
 </body>
 </html>
+
