@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Absensi UPTD Citanduy - User</title>
+    <title>E-Absensi UPTD Citanduy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -19,53 +19,95 @@
             margin: 0;
             padding: 20px;
         }
-       .main-card {
+
+        .main-card {
             background: white;
-            border-radius: 30px; /* Lengkungan kartu utama */
-            padding: 40px;
+            border-radius: 30px; /* Lengkungan kartu */
+            padding: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             width: 100%;
-            max-width: 480px;
+            max-width: 450px;
             position: relative;
-            overflow: hidden; /* PENTING: Agar garis di atas tidak keluar jalur lengkungan */
+            /* INI KUNCINYA: Agar garis hijau di atas ikut melengkung */
+            overflow: hidden; 
         }
 
+        /* Garis Hijau di Atas */
         .main-card::before {
             content: "";
             position: absolute;
             top: 0; 
             left: 0; 
             width: 100%; 
-            height: 10px; /* Ketebalan garis hijau */
-            background: linear-gradient(to right, #27ae60, #2ecc71);
-            /* PERBAIKAN DI SINI: Mengikuti lengkungan atas kartu */
-            border-radius: 30px 30px 0 0; 
+            height: 8px; 
+            background: #2ecc71;
+            z-index: 10;
         }
-        .logo-container { text-align: center; margin-bottom: 10px; }
+
+        .logo-container { text-align: center; margin-top: 10px; margin-bottom: 10px; }
         .logo-img { max-width: 70px; height: auto; }
         
-        .header-title { font-size: 1.1rem; font-weight: 800; color: #2d3436; margin: 0; }
-        .header-sub { font-size: 0.75rem; font-weight: 700; color: #27ae60; margin-bottom: 10px; }
-        
+        .header-text { text-align: center; margin-bottom: 20px; }
+        .header-text h5 { font-weight: 800; color: #2d3436; margin: 0; font-size: 1.1rem; }
+        .header-text p { font-weight: 700; color: #27ae60; font-size: 0.75rem; margin: 0; text-transform: uppercase; }
+
         #clock { 
-            font-size: 1.3rem; 
+            font-size: 1.4rem; 
             font-weight: 700; 
             background: #f1f2f6; 
             color: #2f3542; 
-            padding: 6px 18px; 
-            border-radius: 10px; 
-            display: inline-block; 
-            margin-top: 5px;
+            padding: 8px 20px; 
+            border-radius: 12px; 
+            display: inline-block;
+            margin: 10px 0;
         }
-        
-        .form-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #2d3436; margin-bottom: 5px; }
-        .form-control, .form-select { border-radius: 10px; padding: 10px; background-color: #f8f9fa; border: 1px solid #eee; font-size: 13px; }
-        
-        .btn-absensi { border-radius: 12px; padding: 12px; font-weight: 700; transition: 0.3s; text-transform: uppercase; border: none; width: 100%; font-size: 13px; }
-        .btn-masuk { background: #2ecc71; color: white; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
-        .btn-pulang { background: #fff; color: #e74c3c; border: 1.5px solid #e74c3c; }
-        
-        .loading-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 100; border-radius: 25px; justify-content: center; align-items: center; flex-direction: column; }
+
+        .form-label { font-size: 0.75rem; font-weight: 700; color: #2d3436; text-transform: uppercase; margin-bottom: 5px; }
+        .form-control, .form-select { 
+            border-radius: 10px; 
+            padding: 12px; 
+            background-color: #f8f9fa; 
+            border: 1px solid #eee; 
+            font-size: 14px; 
+        }
+
+        .btn-absensi { 
+            border-radius: 15px; 
+            padding: 15px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            width: 100%; 
+            font-size: 14px; 
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-masuk { 
+            background: #2ecc71; 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .btn-pulang { 
+            background: white; 
+            color: #e74c3c; 
+            border: 2px solid #e74c3c; 
+        }
+
+        .loading-overlay { 
+            display: none; 
+            position: absolute; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.9); 
+            z-index: 100; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column; 
+        }
     </style>
 </head>
 <body>
@@ -73,33 +115,33 @@
 <div class="main-card">
     <div id="loader" class="loading-overlay">
         <div class="spinner-border text-success mb-2"></div>
-        <small class="fw-bold">Mengirim Absen...</small>
+        <small class="fw-bold">Sedang Mengirim...</small>
     </div>
 
     <div class="logo-container">
         <img src="img/g2.png" alt="Logo" class="logo-img" onerror="this.src='https://uptdpsdawscitanduy.wargaloka.org/img/logo-jabar.png'">
     </div>
 
-    <div class="text-center mb-4">
-        <p class="header-title">DINAS SUMBER DAYA AIR</p>
-        <p class="header-sub">UPTD PSDA WILAYAH SUNGAI CITANDUY</p>
-        <hr class="my-2">
-        <div id="greeting" class="small fw-bold text-secondary">Selamat Pagi</div>
+    <div class="header-text">
+        <h5>DINAS SUMBER DAYA AIR</h5>
+        <p>UPTD PSDA WILAYAH SUNGAI CITANDUY</p>
+        <hr style="margin: 15px 0;">
+        <div id="greeting" class="text-secondary small fw-bold">Selamat Pagi</div>
         <div id="clock">00:00:00</div>
     </div>
 
     <form id="absenForm">
-        <div class="mb-2">
+        <div class="mb-3">
             <label class="form-label">NIP Pegawai</label>
             <input type="text" id="nip" class="form-control" placeholder="198XXXXXXXX" required>
         </div>
         
-        <div class="mb-2">
+        <div class="mb-3">
             <label class="form-label">Nama Lengkap</label>
             <input type="text" id="nama" class="form-control" required>
         </div>
 
-        <div class="mb-2">
+        <div class="mb-3">
             <label class="form-label">Jabatan</label>
             <select id="jabatan" class="form-select" required>
                 <option value="" selected disabled>-- Pilih Jabatan --</option>
@@ -111,31 +153,31 @@
             </select>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Foto Selfie</label>
             <input type="file" id="foto" class="form-control" accept="image/*" capture="user">
         </div>
 
         <button type="button" onclick="kirimData('Masuk')" class="btn btn-absensi btn-masuk">
-            <i class="fas fa-camera me-2"></i> ABSEN MASUK SEKARANG
+            <i class="fas fa-camera"></i> Absen Masuk Sekarang
         </button>
 
         <button type="button" onclick="kirimData('Pulang')" class="btn btn-absensi btn-pulang">
-            <i class="fas fa-home me-2"></i> ABSEN PULANG
+            <i class="fas fa-home"></i> Absen Pulang
         </button>
         
         <div class="text-center mt-3">
-            <small style="font-size: 10px;" class="text-success fw-bold">
-                <i class="fas fa-check-square"></i> Waktu Real-time Aktif
+            <small class="text-success fw-bold" style="font-size: 10px;">
+                <i class="fas fa-check-circle"></i> Waktu Real-time Aktif
             </small>
         </div>
     </form>
 </div>
 
 <script>
+    // Konfigurasi Supabase
     const SUPABASE_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_jye1AjnIADhnjyFo7qWPJw_fTPSStcp';
-    
     const { createClient } = supabase;
     const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     const TABEL = 'laporan_absen';
@@ -145,77 +187,59 @@
         const jam = String(sekarang.getHours()).padStart(2, '0');
         const menit = String(sekarang.getMinutes()).padStart(2, '0');
         const detik = String(sekarang.getSeconds()).padStart(2, '0');
-        
         document.getElementById('clock').innerText = `${jam}:${menit}:${detik}`;
 
-        const greeting = document.getElementById('greeting');
+        const g = document.getElementById('greeting');
         const h = sekarang.getHours();
-        if (h >= 5 && h < 11) greeting.innerText = "Selamat Pagi";
-        else if (h >= 11 && h < 15) greeting.innerText = "Selamat Siang";
-        else if (h >= 15 && h < 18) greeting.innerText = "Selamat Sore";
-        else greeting.innerText = "Selamat Malam";
+        if (h < 11) g.innerText = "Selamat Pagi";
+        else if (h < 15) g.innerText = "Selamat Siang";
+        else if (h < 18) g.innerText = "Selamat Sore";
+        else g.innerText = "Selamat Malam";
     }
-    
     setInterval(updateWaktu, 1000);
     updateWaktu();
 
-    async function kirimData(statusAbsen) {
+    async function kirimData(status) {
         const nip = document.getElementById('nip').value.trim();
         const nama = document.getElementById('nama').value;
         const jabatan = document.getElementById('jabatan').value;
-        const fotoFile = document.getElementById('foto').files[0];
+        const foto = document.getElementById('foto').files[0];
 
-        if (!nip || !nama || !jabatan) return alert("Harap isi NIP, Nama, dan Jabatan!");
-        
-        // Proteksi Pulang
-        if (statusAbsen === 'Pulang' && new Date().getHours() < 14) {
-            return alert("Belum waktunya pulang! (Minimal jam 14:00)");
-        }
+        if(!nip || !nama || !jabatan) return alert("Lengkapi data dulu bos!");
+        if(status === 'Pulang' && new Date().getHours() < 14) return alert("Belum waktunya pulang!");
 
         document.getElementById('loader').style.display = 'flex';
 
         navigator.geolocation.getCurrentPosition(async (pos) => {
-            const koordinat = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-            const tglHariIni = new Date().toLocaleDateString('en-CA'); 
+            const loc = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+            const tgl = new Date().toLocaleDateString('en-CA');
 
             try {
-                if (statusAbsen === 'Masuk') {
-                    let publicFotoUrl = "";
-                    if (fotoFile) {
-                        const fileName = `${Date.now()}_${nip}.jpg`;
-                        const { error: uploadError } = await _supabase.storage.from('foto-absen').upload(fileName, fotoFile);
-                        if (uploadError) throw uploadError;
-                        const { data: urlData } = _supabase.storage.from('foto-absen').getPublicUrl(fileName);
-                        publicFotoUrl = urlData.publicUrl;
+                if(status === 'Masuk') {
+                    let url = "";
+                    if(foto) {
+                        const name = `${Date.now()}_${nip}.jpg`;
+                        await _supabase.storage.from('foto-absen').upload(name, foto);
+                        const { data } = _supabase.storage.from('foto-absen').getPublicUrl(name);
+                        url = data.publicUrl;
                     }
-
-                    const { error } = await _supabase.from(TABEL).insert([{ 
-                        nip, nama, jabatan, tanggal: tglHariIni, 
-                        status: 'Hadir', lokasi: koordinat, foto_url: publicFotoUrl 
-                    }]);
-                    if (error) throw error;
-                    alert("Berhasil Absen Masuk!");
+                    await _supabase.from(TABEL).insert([{ nip, nama, jabatan, tanggal: tgl, status: 'Hadir', lokasi: loc, foto_url: url }]);
+                    alert("Absen Masuk Berhasil!");
                 } else {
-                    const jamKlik = `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
-                    const { data: baris } = await _supabase.from(TABEL).select('id').eq('nip', nip).eq('tanggal', tglHariIni).maybeSingle();
-                    if (!baris) return alert("Data absen masuk tidak ditemukan!");
-
-                    const { error: updateError } = await _supabase.from(TABEL).update({ "jam_pulang": jamKlik }).eq('id', baris.id);
-                    if (updateError) throw updateError;
-                    alert("Berhasil Absen Pulang!");
+                    const jam = `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
+                    const { data } = await _supabase.from(TABEL).select('id').eq('nip', nip).eq('tanggal', tgl).maybeSingle();
+                    if(!data) throw new Error("Data masuk nggak ada!");
+                    await _supabase.from(TABEL).update({ jam_pulang: jam }).eq('id', data.id);
+                    alert("Absen Pulang Berhasil!");
                 }
                 location.reload();
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                document.getElementById('loader').style.display = 'none';
-            }
-        }, (err) => {
-            alert("Gagal ambil lokasi. Pastikan GPS aktif!");
+            } catch (e) { alert(e.message); }
+            finally { document.getElementById('loader').style.display = 'none'; }
+        }, () => {
+            alert("Nyalain GPS-nya!");
             document.getElementById('loader').style.display = 'none';
         });
     }
 </script>
 </body>
 </html>
-
