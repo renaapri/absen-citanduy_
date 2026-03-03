@@ -141,14 +141,17 @@
         const jabatan = document.getElementById('jabatan').value;
         const fotoFile = document.getElementById('foto').files[0];
 
-        // --- PROTEKSI JAM PULANG ---
+        // --- PROTEKSI JAM PULANG YANG LEBIH KUAT ---
         const sekarang = new Date();
-        const jamSekarang = sekarang.getHours();
+        const jamSekarang = sekarang.getHours(); 
 
-        if (statusAbsen === 'Pulang' && jamSekarang < 14) {
-            return alert("BELUM WAKTUNYA PULANG! Tombol absen pulang baru bisa digunakan mulai jam 14:00.");
+        if (statusAbsen === 'Pulang') {
+            if (jamSekarang < 14) {
+                alert("BELUM WAKTUNYA PULANG!\n\nSaat ini masih jam " + jamSekarang + ". Tombol absen pulang baru bisa digunakan mulai jam 14:00.");
+                return; // Berhenti di sini, tidak lanjut ke proses database
+            }
         }
-        // ---------------------------
+        // -------------------------------------------
 
         if (!nip || !nama) return alert("NIP dan Nama wajib diisi!");
         document.getElementById('loader').style.display = 'flex';
@@ -213,4 +216,5 @@
 </script>
 </body>
 </html>
+
 
