@@ -1,202 +1,201 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - Rekapitulasi Absensi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .late-badge { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-        .ontime-badge { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Rekapitulasi Absensi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .late-badge { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .ontime-badge { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+    </style>
 </head>
 <body class="bg-[#f4f7f6]">
 
-    <div id="photo-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeModal()">
-        <div class="relative max-w-xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-            <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/50 text-white w-10 h-10 rounded-full hover:bg-black transition text-xl font-bold">&times;</button>
-            <img id="modal-img" src="" class="w-full h-auto max-h-[75vh] object-contain bg-gray-200">
-            <div class="p-5 text-center bg-white">
-                <p id="modal-name" class="font-bold text-lg text-gray-800 uppercase tracking-tight"></p>
-                <p class="text-xs text-gray-400 mt-1 uppercase">Dokumentasi Absensi Pegawai</p>
-            </div>
-        </div>
-    </div>
+    <div id="photo-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeModal()">
+        <div class="relative max-w-xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/50 text-white w-10 h-10 rounded-full hover:bg-black transition text-xl font-bold">&times;</button>
+            <img id="modal-img" src="" class="w-full h-auto max-h-[75vh] object-contain bg-gray-200">
+            <div class="p-5 text-center bg-white">
+                <p id="modal-name" class="font-bold text-lg text-gray-800 uppercase tracking-tight"></p>
+                <p class="text-xs text-gray-400 mt-1 uppercase">Dokumentasi Absensi Pegawai</p>
+            </div>
+        </div>
+    </div>
 
-    <div class="max-w-[1400px] mx-auto p-6">
-        <div class="bg-[#005a32] text-white p-5 rounded-t-xl flex justify-between items-end shadow-lg">
-            <div>
-                <h1 class="font-bold text-2xl tracking-tight">REKAPITULASI ABSENSI</h1>
-                <p class="text-xs font-light opacity-80 tracking-widest">UPTD PSDA WS CITANDUY</p>
-            </div>
-            <div class="text-right">
-                <p id="live-clock" class="text-2xl font-semibold tracking-tighter">00.00.00</p>
-                <p id="live-date" class="text-[10px] uppercase tracking-wider">01 January 2026</p>
-            </div>
-        </div>
+    <div class="max-w-[1400px] mx-auto p-6">
+        <div class="bg-[#005a32] text-white p-5 rounded-t-xl flex justify-between items-end shadow-lg">
+            <div>
+                <h1 class="font-bold text-2xl tracking-tight">REKAPITULASI ABSENSI</h1>
+                <p class="text-xs font-light opacity-80 tracking-widest">UPTD PSDA WS CITANDUY</p>
+            </div>
+            <div class="text-right">
+                <p id="live-clock" class="text-2xl font-semibold tracking-tighter">00.00.00</p>
+                <p id="live-date" class="text-[10px] uppercase tracking-wider">01 January 2026</p>
+            </div>
+        </div>
 
-        <div class="bg-white p-6 shadow-sm flex flex-wrap gap-4 items-end border-x border-gray-200">
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase">Mulai Tanggal</label>
-                <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
-            </div>
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
-                <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
-            </div>
-            <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition">🔍 CARI DATA</button>
-            <button onclick="resetFilter()" class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
-            <button onclick="exportToExcel()" class="ml-auto bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] transition flex items-center gap-2 shadow-sm">
-                📊 EXPORT EXCEL
-            </button>
-        </div>
+        <div class="bg-white p-6 shadow-sm flex flex-wrap gap-4 items-end border-x border-gray-200">
+            <div class="space-y-1">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase">Mulai Tanggal</label>
+                <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
+                <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+            </div>
+            <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition">🔍 CARI DATA</button>
+            <button onclick="resetFilter()" class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
+            <button onclick="exportToExcel()" class="ml-auto bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] transition flex items-center gap-2 shadow-sm">
+                📊 EXPORT EXCEL
+            </button>
+        </div>
 
-        <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-b border-gray-200">
-            <table id="attendance-table" class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#004d2c] text-white text-[10px] font-bold uppercase tracking-wider">
-                        <th class="p-4 text-center border-r border-white/10 w-12">No</th>
-                        <th class="p-4 text-center border-r border-white/10 w-20">Foto</th>
-                        <th class="p-4 border-r border-white/10">Data Pegawai</th>
-                        <th class="p-4 border-r border-white/10">Jabatan</th>
-                        <th class="p-4 text-center border-r border-white/10">Tanggal</th>
-                        <th class="p-4 text-center border-r border-white/10">Masuk</th>
-                        <th class="p-4 text-center border-r border-white/10">Pulang</th>
-                        <th class="p-4 text-center border-r border-white/10">Status</th>
-                        <th class="p-4 text-center no-export">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100 uppercase">
-                    <tr><td colspan="9" class="p-10 text-center text-gray-400 italic">Memuat data...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+        <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-b border-gray-200">
+            <table id="attendance-table" class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#004d2c] text-white text-[10px] font-bold uppercase tracking-wider">
+                        <th class="p-4 text-center border-r border-white/10 w-12">No</th>
+                        <th class="p-4 text-center border-r border-white/10 w-20">Foto</th>
+                        <th class="p-4 border-r border-white/10">Data Pegawai</th>
+                        <th class="p-4 border-r border-white/10">Jabatan</th>
+                        <th class="p-4 text-center border-r border-white/10">Tanggal</th>
+                        <th class="p-4 text-center border-r border-white/10">Masuk</th>
+                        <th class="p-4 text-center border-r border-white/10">Pulang</th>
+                        <th class="p-4 text-center border-r border-white/10">Status</th>
+                        <th class="p-4 text-center no-export">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100 uppercase">
+                    <tr><td colspan="9" class="p-10 text-center text-gray-400 italic">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <script>
-        const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcnhycHVlb3Zqem5nbGl3bHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjQ0MDMsImV4cCI6MjA4NzU0MDQwM30.RSwl-CzjWlk3n4ifLl3gJdiFa3HltwasQKWDYvvJBks';
-        const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
-        const NAMA_TABEL = 'laporan_absen';
+    <script>
+        const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcnhycHVlb3Zqem5nbGl3bHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjQ0MDMsImV4cCI6MjA4NzU0MDQwM30.RSwl-CzjWlk3n4ifLl3gJdiFa3HltwasQKWDYvvJBks';
+        const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
+        const NAMA_TABEL = 'laporan_absen';
 
-        function perbesarFoto(url, nama) {
-            if (!url || url.includes('ui-avatars')) return alert("Tidak ada foto.");
-            document.getElementById('modal-img').src = url;
-            document.getElementById('modal-name').innerText = "NAMA: " + nama;
-            document.getElementById('photo-modal').classList.remove('hidden');
-            document.getElementById('photo-modal').classList.add('flex');
-        }
+        function perbesarFoto(url, nama) {
+            if (!url || url.includes('ui-avatars')) return alert("Tidak ada foto.");
+            document.getElementById('modal-img').src = url;
+            document.getElementById('modal-name').innerText = "NAMA: " + nama;
+            document.getElementById('photo-modal').classList.remove('hidden');
+            document.getElementById('photo-modal').classList.add('flex');
+        }
 
-        function closeModal() {
-            document.getElementById('photo-modal').classList.add('hidden');
-            document.getElementById('photo-modal').classList.remove('flex');
-        }
+        function closeModal() {
+            document.getElementById('photo-modal').classList.add('hidden');
+            document.getElementById('photo-modal').classList.remove('flex');
+        }
 
-        async function loadData() {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-400 italic">Mencari data...</td></tr>';
+        async function loadData() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-400 italic">Mencari data...</td></tr>';
 
-            const filterMulai = document.getElementById('filter-mulai').value;
-            const filterSampai = document.getElementById('filter-sampai').value;
+            const filterMulai = document.getElementById('filter-mulai').value;
+            const filterSampai = document.getElementById('filter-sampai').value;
 
-            try {
-                let query = dbSupabase.from(NAMA_TABEL).select('*');
-                if (filterMulai) query = query.gte('tanggal', filterMulai);
-                if (filterSampai) query = query.lte('tanggal', filterSampai);
+            try {
+                let query = dbSupabase.from(NAMA_TABEL).select('*');
+                if (filterMulai) query = query.gte('tanggal', filterMulai);
+                if (filterSampai) query = query.lte('tanggal', filterSampai);
 
-                const { data, error } = await query.order('tanggal', { ascending: false }).order('created_at', { ascending: false });
+                const { data, error } = await query.order('tanggal', { ascending: false }).order('created_at', { ascending: false });
 
-                if (error) throw error;
-                tbody.innerHTML = '';
+                if (error) throw error;
+                tbody.innerHTML = '';
 
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500 font-bold italic">TIDAK ADA DATA</td></tr>';
-                    return;
-                }
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500 font-bold italic">TIDAK ADA DATA</td></tr>';
+                    return;
+                }
 
-                data.forEach((row, index) => {
-                    // AMBIL JAM MASUK DARI created_at
-                    const dateObj = new Date(row.created_at);
-                    const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    
-                    const tglTampil = row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-';
-                    
-                    // DETEKSI JAM PULANG
-                    const jamPulang = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang : '--:--';
-                    
-                    // LOGIKA STATUS: 06.31 SUDAH TERLAMBAT
-                    const isLate = jamMasuk > "06:30"; 
-                    const isSelesai = jamPulang !== '--:--';
+                data.forEach((row, index) => {
+                    // Ambil jam masuk dari created_at
+                    const dateObj = new Date(row.created_at);
+                    const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/:/g, '.');
+                    const tglTampil = row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-';
+                    
+                    // Deteksi Jam Pulang
+                    const jamPulang = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang.replace(/:/g, '.') : '--:--';
+                    
+                    // Status Badge Logic
+                    const isSelesai = jamPulang !== '--:--';
+                    const isLate = jamMasuk > "07.30"; // Sesuaikan toleransi terlambat di sini
+                    const fotoUrl = row.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
 
-                    const fotoUrl = row.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                            <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
+                            <td class="p-4 text-center">
+                                <img src="${fotoUrl}" class="w-10 h-12 rounded shadow-sm mx-auto object-cover border border-gray-200 cursor-zoom-in" onclick="perbesarFoto('${fotoUrl}', '${row.nama}')">
+                            </td>
+                            <td class="p-4">
+                                <div class="font-bold text-gray-800 text-sm">${row.nama}</div>
+                                <div class="text-[9px] text-gray-400 font-bold">NIP. ${row.nip}</div>
+                            </td>
+                            <td class="p-4 text-[10px] text-gray-600 font-bold">${row.jabatan}</td>
+                            <td class="p-4 text-center font-bold text-gray-500">${tglTampil}</td>
+                            <td class="p-4 text-center">
+                                <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jamMasuk}</div>
+                                <div class="text-[8px] px-1 rounded inline-block font-black ${isLate ? 'late-badge' : 'ontime-badge'}">
+                                    ${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}
+                                </div>
+                            </td>
+                            <td class="p-4 text-center font-black text-sm text-blue-600">${jamPulang}</td>
+                            <td class="p-4 text-center">
+                                <span class="${isSelesai ? 'bg-blue-500' : 'bg-green-500'} text-white px-3 py-1 rounded font-black text-[9px] shadow-sm">
+                                    ${isSelesai ? 'SELESAI' : 'HADIR'}
+                                </span>
+                            </td>
+                            <td class="p-4 text-center no-export">
+                                <button onclick="hapusData(${row.id})" class="text-red-400 hover:text-red-600 transition">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-500">Error: ${error.message}</td></tr>`;
+            }
+        }
 
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                            <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
-                            <td class="p-4 text-center">
-                                <img src="${fotoUrl}" class="w-10 h-12 rounded shadow-sm mx-auto object-cover border border-gray-200 cursor-zoom-in" onclick="perbesarFoto('${fotoUrl}', '${row.nama}')">
-                            </td>
-                            <td class="p-4">
-                                <div class="font-bold text-gray-800 text-sm">${row.nama}</div>
-                                <div class="text-[9px] text-gray-400 font-bold">NIP. ${row.nip}</div>
-                            </td>
-                            <td class="p-4 text-[10px] text-gray-600 font-bold">${row.jabatan}</td>
-                            <td class="p-4 text-center font-bold text-gray-500">${tglTampil}</td>
-                            <td class="p-4 text-center">
-                                <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jamMasuk.replace(/:/g, '.')}</div>
-                                <div class="text-[8px] px-1 rounded inline-block font-black ${isLate ? 'late-badge' : 'ontime-badge'}">
-                                    ${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}
-                                </div>
-                            </td>
-                            <td class="p-4 text-center font-black text-sm text-blue-600">${jamPulang.replace(/:/g, '.')}</td>
-                            <td class="p-4 text-center">
-                                <span class="${isSelesai ? 'bg-blue-600' : 'bg-green-500'} text-white px-3 py-1 rounded font-black text-[9px] shadow-sm">
-                                    ${isSelesai ? 'SELESAI' : 'HADIR'}
-                                </span>
-                            </td>
-                            <td class="p-4 text-center no-export">
-                                <button onclick="hapusData(${row.id})" class="text-red-400 hover:text-red-600 transition">🗑️</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-500">Error: ${error.message}</td></tr>`;
-            }
-        }
+        async function hapusData(id) {
+            if (confirm('Hapus data ini?')) {
+                await dbSupabase.from(NAMA_TABEL).delete().eq('id', id);
+                loadData();
+            }
+        }
 
-        async function hapusData(id) {
-            if (confirm('Hapus data ini?')) {
-                await dbSupabase.from(NAMA_TABEL).delete().eq('id', id);
-                loadData();
-            }
-        }
+        function resetFilter() {
+            document.getElementById('filter-mulai').value = '';
+            document.getElementById('filter-sampai').value = '';
+            loadData();
+        }
 
-        function resetFilter() {
-            document.getElementById('filter-mulai').value = '';
-            document.getElementById('filter-sampai').value = '';
-            loadData();
-        }
+        function exportToExcel() {
+            const table = document.getElementById("attendance-table");
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap");
+            XLSX.writeFile(wb, `Rekap_Absensi.xlsx`);
+        }
 
-        function exportToExcel() {
-            const table = document.getElementById("attendance-table");
-            const ws = XLSX.utils.table_to_sheet(table);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap");
-            XLSX.writeFile(wb, `Rekap_Absensi_Citanduy.xlsx`);
-        }
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.');
+            document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+        }, 1000);
 
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.');
-            document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-        }, 1000);
-
-        window.onload = loadData;
-    </script>
+        window.onload = loadData;
+    </script>
 </body>
 </html>
+ INI ADMIN PERBAIKI YANG LOAD
