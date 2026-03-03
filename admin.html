@@ -12,15 +12,12 @@
         body { font-family: 'Inter', sans-serif; }
         .late-badge { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
         .ontime-badge { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
-        #photo-modal { transition: opacity 0.3s ease; }
-        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
-        #photo-modal.flex .modal-content { transform: scale(1); }
     </style>
 </head>
 <body class="bg-[#f4f7f6]">
 
     <div id="photo-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeModal()">
-        <div class="relative max-w-xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl modal-content" onclick="event.stopPropagation()">
+        <div class="relative max-w-xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
             <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/50 text-white w-10 h-10 rounded-full hover:bg-black transition text-xl font-bold">&times;</button>
             <img id="modal-img" src="" class="w-full h-auto max-h-[75vh] object-contain bg-gray-200">
             <div class="p-5 text-center bg-white">
@@ -45,15 +42,13 @@
         <div class="bg-white p-6 shadow-sm flex flex-wrap gap-4 items-end border-x border-gray-200">
             <div class="space-y-1">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase">Mulai Tanggal</label>
-                <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
+                <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
             </div>
             <div class="space-y-1">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
-                <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 outline-none">
+                <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
             </div>
-            <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition flex items-center gap-2">
-                🔍 CARI DATA
-            </button>
+            <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition">🔍 CARI DATA</button>
             <button onclick="resetFilter()" class="border border-gray-300 text-gray-600 px-6 py-2 rounded text-xs font-bold hover:bg-gray-50 transition">RESET</button>
             <button onclick="exportToExcel()" class="ml-auto bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] transition flex items-center gap-2 shadow-sm">
                 📊 EXPORT EXCEL
@@ -76,9 +71,7 @@
                     </tr>
                 </thead>
                 <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100 uppercase">
-                    <tr>
-                        <td colspan="9" class="p-10 text-center text-gray-400 italic">Memuat data dari database...</td>
-                    </tr>
+                    <tr><td colspan="9" class="p-10 text-center text-gray-400 italic">Memuat data...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -87,30 +80,20 @@
     <script>
         const SB_URL = 'https://kcrxrpueovjzngliwltj.supabase.co'; 
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcnhycHVlb3Zqem5nbGl3bHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjQ0MDMsImV4cCI6MjA4NzU0MDQwM30.RSwl-CzjWlk3n4ifLl3gJdiFa3HltwasQKWDYvvJBks';
-        
         const dbSupabase = supabase.createClient(SB_URL, SB_KEY);
-        
-        // PENTING: Nama tabel harus sama dengan yang ada di user (PAKAI STRIP)
         const NAMA_TABEL = 'laporan_absen';
 
         function perbesarFoto(url, nama) {
-            const modal = document.getElementById('photo-modal');
-            const modalImg = document.getElementById('modal-img');
-            const modalName = document.getElementById('modal-name');
-            if (!url || url.includes('ui-avatars')) {
-                alert("Pegawai ini tidak mengunggah foto saat absen.");
-                return;
-            }
-            modalImg.src = url;
-            modalName.innerText = "NAMA: " + nama;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            if (!url || url.includes('ui-avatars')) return alert("Tidak ada foto.");
+            document.getElementById('modal-img').src = url;
+            document.getElementById('modal-name').innerText = "NAMA: " + nama;
+            document.getElementById('photo-modal').classList.remove('hidden');
+            document.getElementById('photo-modal').classList.add('flex');
         }
 
         function closeModal() {
-            const modal = document.getElementById('photo-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('photo-modal').classList.add('hidden');
+            document.getElementById('photo-modal').classList.remove('flex');
         }
 
         async function loadData() {
@@ -121,9 +104,7 @@
             const filterSampai = document.getElementById('filter-sampai').value;
 
             try {
-                // Gunakan konstanta NAMA_TABEL agar tidak typo
                 let query = dbSupabase.from(NAMA_TABEL).select('*');
-
                 if (filterMulai) query = query.gte('tanggal', filterMulai);
                 if (filterSampai) query = query.lte('tanggal', filterSampai);
 
@@ -133,34 +114,35 @@
                 tbody.innerHTML = '';
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500 font-bold italic">TIDAK ADA DATA DITEMUKAN</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500 font-bold italic">TIDAK ADA DATA</td></tr>';
                     return;
                 }
 
                 data.forEach((row, index) => {
+                    // Ambil jam masuk dari created_at
                     const dateObj = new Date(row.created_at);
-                    const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    const jamMasuk = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/:/g, '.');
                     const tglTampil = row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-';
                     
-                    // Logika jam pulang agar nampil
-                    const jamPulang = (row.jam_pulang && row.jam_pulang !== 'NULL') ? row.jam_pulang : '--:--';
+                    // Deteksi Jam Pulang
+                    const jamPulang = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang.replace(/:/g, '.') : '--:--';
                     
-                    const isLate = jamMasuk > "06:30";
-                    const fotoUrl = row.foto_url ? row.foto_url : `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
+                    // Status Badge Logic
+                    const isSelesai = jamPulang !== '--:--';
+                    const isLate = jamMasuk > "07.30"; // Sesuaikan toleransi terlambat di sini
+                    const fotoUrl = row.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
                             <td class="p-4 text-center font-semibold text-gray-400">${index + 1}</td>
                             <td class="p-4 text-center">
-                                <img src="${fotoUrl}" 
-                                     class="w-10 h-12 rounded shadow-sm mx-auto object-cover border border-gray-200 cursor-zoom-in hover:brightness-75 transition"
-                                     onclick="perbesarFoto('${fotoUrl}', '${row.nama.replace(/'/g, "\\'")}')">
+                                <img src="${fotoUrl}" class="w-10 h-12 rounded shadow-sm mx-auto object-cover border border-gray-200 cursor-zoom-in" onclick="perbesarFoto('${fotoUrl}', '${row.nama}')">
                             </td>
                             <td class="p-4">
-                                <div class="font-bold text-gray-800 text-sm">${row.nama || '-'}</div>
-                                <div class="text-[9px] text-gray-400 font-bold">NIP. ${row.nip || '-'}</div>
+                                <div class="font-bold text-gray-800 text-sm">${row.nama}</div>
+                                <div class="text-[9px] text-gray-400 font-bold">NIP. ${row.nip}</div>
                             </td>
-                            <td class="p-4 text-[10px] text-gray-600 font-bold">${row.jabatan || '-'}</td>
+                            <td class="p-4 text-[10px] text-gray-600 font-bold">${row.jabatan}</td>
                             <td class="p-4 text-center font-bold text-gray-500">${tglTampil}</td>
                             <td class="p-4 text-center">
                                 <div class="font-black text-sm ${isLate ? 'text-red-600' : 'text-green-600'}">${jamMasuk}</div>
@@ -170,27 +152,25 @@
                             </td>
                             <td class="p-4 text-center font-black text-sm text-blue-600">${jamPulang}</td>
                             <td class="p-4 text-center">
-                                <span class="${jamPulang !== '--:--' ? 'bg-blue-500' : 'bg-green-500'} text-white px-3 py-1 rounded font-black text-[9px] shadow-sm">
-                                    ${jamPulang !== '--:--' ? 'SELESAI' : 'HADIR'}
+                                <span class="${isSelesai ? 'bg-blue-500' : 'bg-green-500'} text-white px-3 py-1 rounded font-black text-[9px] shadow-sm">
+                                    ${isSelesai ? 'SELESAI' : 'HADIR'}
                                 </span>
                             </td>
                             <td class="p-4 text-center no-export">
-                                <button onclick="hapusData(${row.id})" class="text-red-400 hover:text-red-600 transition text-lg">🗑️</button>
+                                <button onclick="hapusData(${row.id})" class="text-red-400 hover:text-red-600 transition">🗑️</button>
                             </td>
                         </tr>
                     `;
                 });
             } catch (error) {
-                console.error("Gagal ambil data:", error.message);
-                tbody.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-500 font-bold">ERROR: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-500">Error: ${error.message}</td></tr>`;
             }
         }
 
         async function hapusData(id) {
-            if (confirm('Hapus data absensi ini secara permanen?')) {
-                const { error } = await dbSupabase.from(NAMA_TABEL).delete().eq('id', id);
-                if (error) alert('Gagal menghapus: ' + error.message);
-                else loadData();
+            if (confirm('Hapus data ini?')) {
+                await dbSupabase.from(NAMA_TABEL).delete().eq('id', id);
+                loadData();
             }
         }
 
@@ -202,19 +182,15 @@
 
         function exportToExcel() {
             const table = document.getElementById("attendance-table");
-            const cloneTable = table.cloneNode(true);
-            cloneTable.querySelectorAll('.no-export').forEach(el => el.remove());
-            const ws = XLSX.utils.table_to_sheet(cloneTable);
+            const ws = XLSX.utils.table_to_sheet(table);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
-            const dateStr = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `Rekap_Absensi_Citanduy_${dateStr}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap");
+            XLSX.writeFile(wb, `Rekap_Absensi.xlsx`);
         }
 
         setInterval(() => {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/:/g, '.');
-            document.getElementById('live-clock').innerText = timeStr;
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.');
             document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
         }, 1000);
 
