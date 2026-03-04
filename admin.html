@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - Rekapitulasi Absensi</title>
+    <title>Dashboard Admin - UPTD PSDA WS CITANDUY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -38,20 +38,27 @@
             </div>
         </div>
 
-        <div class="bg-white p-6 shadow-sm border-x border-gray-200 flex flex-wrap gap-4 items-end">
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase">Dari Tanggal</label>
-                <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+        <div class="bg-white p-6 shadow-sm border-x border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+            <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
+                <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase">Scan QR Absensi</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://absen-citanduy-9783.vercel.app/" class="w-28 h-28 border-2 border-white shadow-sm">
             </div>
-            <div class="space-y-1">
-                <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
-                <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+
+            <div class="md:col-span-3 flex flex-wrap gap-4 items-end">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Dari Tanggal</label>
+                    <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
+                    <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+                </div>
+                <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition">CARI DATA</button>
+                
+                <button onclick="exportToExcelPuas()" class="bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] flex items-center gap-2 shadow-md ml-auto">
+                    📊 DOWNLOAD EXCEL REKAP
+                </button>
             </div>
-            <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition">CARI DATA</button>
-            
-            <button onclick="exportToExcelBaru()" class="bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] flex items-center gap-2 shadow-md ml-auto">
-                📊 DOWNLOAD EXCEL REKAP
-            </button>
         </div>
 
         <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-b border-gray-200">
@@ -69,8 +76,7 @@
                         <th class="p-4 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100 uppercase">
-                    </tbody>
+                <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100 uppercase"></tbody>
             </table>
         </div>
     </div>
@@ -96,7 +102,7 @@
 
                 data.forEach((row, index) => {
                     const jamIn = new Date(row.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    const jamOut = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang : '--:--';
+                    const jamOut = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang : '-';
                     const isLate = jamIn > "06:30"; 
                     const fotoUrl = row.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
 
@@ -111,10 +117,10 @@
                                 <span class="font-bold ${isLate ? 'text-red-600' : 'text-green-600'}">${jamIn.replace(/:/g, '.')}</span><br>
                                 <span class="text-[8px] font-black ${isLate ? 'late-badge' : 'ontime-badge'} px-1 rounded">${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}</span>
                             </td>
-                            <td class="p-4 text-center text-blue-600 font-bold">${jamOut.replace(/:/g, '.')}</td>
+                            <td class="p-4 text-center">${jamOut.replace(/:/g, '.')}</td>
                             <td class="p-4 text-center">
-                                <span class="${jamOut !== '--:--' ? 'bg-blue-600' : 'bg-green-500'} text-white px-2 py-1 rounded font-black text-[8px]">
-                                    ${jamOut !== '--:--' ? 'SELESAI' : 'HADIR'}
+                                <span class="${jamOut !== '-' ? 'bg-blue-600' : 'bg-green-500'} text-white px-2 py-1 rounded font-black text-[8px]">
+                                    ${jamOut !== '-' ? 'SELESAI' : 'HADIR'}
                                 </span>
                             </td>
                             <td class="p-4 text-center"><button onclick="hapusData(${row.id})" class="text-red-300 hover:text-red-600">🗑️</button></td>
@@ -123,36 +129,29 @@
             } catch (err) { console.error(err); }
         }
 
-        // FUNGSI EXCEL DENGAN GARIS TABEL & TANDA TANGAN
-        function exportToExcelBaru() {
+        function exportToExcelPuas() {
             const rows = document.querySelectorAll('#table-body tr');
-            if (rows.length === 0 || rows[0].innerText.includes("Loading")) {
-                alert("Data kosong!"); return;
-            }
+            if (rows.length === 0) return alert("Data kosong!");
 
-            // 1. Ambil Data Tabel
+            // HEADER TABEL PERSIS GAMBAR
             const dataTable = [["NO", "NIP", "NAMA PEGAWAI", "JABATAN", "TANGGAL", "MASUK", "PULANG", "KETERANGAN"]];
+
             rows.forEach((row, index) => {
                 const cols = row.querySelectorAll('td');
                 if (cols.length >= 8) {
-                    const nama = cols[2].querySelector('b').innerText;
+                    const nama = cols[2].querySelector('b').innerText.toUpperCase();
                     const nip = cols[2].querySelector('span').innerText.replace('NIP. ', '');
-                    dataTable.push([
-                        index + 1, "'" + nip, nama.toUpperCase(), cols[3].innerText.trim(), 
-                        cols[4].innerText.trim(), cols[5].querySelector('span').innerText, 
-                        cols[6].innerText.trim(), cols[5].querySelectorAll('span')[1].innerText
-                    ]);
+                    const tgl = cols[4].innerText;
+                    const masuk = cols[5].querySelector('span').innerText;
+                    const pulang = cols[6].innerText;
+                    const status = cols[5].querySelectorAll('span')[1].innerText; // TERLAMBAT / TEPAT WAKTU
+
+                    dataTable.push([index + 1, "'" + nip, nama, cols[3].innerText, tgl, masuk, pulang, status]);
                 }
             });
 
-            // 2. Siapkan Info Tanda Tangan
-            const hariIni = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            const namaPimpinan = "NAMA PIMPINAN ANDA, S.T., M.T."; // <--- GANTI NAMA DI SINI
-            const nipPimpinan = "19XXXXXXXXXXXXXX"; // <--- GANTI NIP DI SINI
-            const jabatanPimpinan = "Kepala UPTD PSDA WS Citanduy";
-
-            // 3. Gabungkan Semua Bagian (Kop + Tabel + Ttd)
-            const finalSheetData = [
+            // KONSTRUKSI SHEET
+            const ws = XLSX.utils.aoa_to_sheet([
                 ["PEMERINTAH PROVINSI JAWA BARAT"],
                 ["DINAS SUMBER DAYA AIR"],
                 ["UPTD PENGELOLAAN SUMBER DAYA AIR WILAYAH SUNGAI CITANDUY"],
@@ -162,41 +161,26 @@
                 ["Periode: " + (document.getElementById('filter-mulai').value || "-") + " s/d " + (document.getElementById('filter-sampai').value || "-")],
                 [""],
                 ...dataTable,
-                [""], // Baris Kosong
-                ["", "", "", "", "", "", "Tasikmalaya, " + hariIni],
-                ["", "", "", "", "", "", jabatanPimpinan],
-                [""], [""], [""], // Spasi Tanda Tangan
-                ["", "", "", "", "", "", namaPimpinan],
-                ["", "", "", "", "", "", "NIP. " + nipPimpinan]
-            ];
+                [""],
+                ["", "", "", "", "", "", "Tasikmalaya, " + new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})],
+                ["", "", "", "", "", "", "Kepala UPTD PSDA WS Citanduy"],
+                [""], [""],
+                ["", "", "", "", "", "", "NAMA PIMPINAN, S.T., M.T."],
+                ["", "", "", "", "", "", "NIP. 19283746552423"]
+            ]);
 
-            const ws = XLSX.utils.aoa_to_sheet(finalSheetData);
-
-            // 4. Pengaturan Merge
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } },
-                { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } },
-                { s: { r: 5, c: 0 }, e: { r: 5, c: 7 } },
-                { s: { r: 6, c: 0 }, e: { r: 6, c: 7 } }
-            ];
-
-            // 5. Lebar Kolom
-            ws['!cols'] = [{wch:5}, {wch:25}, {wch:35}, {wch:30}, {wch:15}, {wch:12}, {wch:12}, {wch:15}];
+            // STYLE: MERGE & WIDTH
+            ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:7}}, {s:{r:1,c:0},e:{r:1,c:7}}, {s:{r:2,c:0},e:{r:2,c:7}}, {s:{r:3,c:0},e:{r:3,c:7}}, {s:{r:5,c:0},e:{r:5,c:7}}, {s:{r:6,c:0},e:{r:6,c:7}}];
+            ws['!cols'] = [{wch:5}, {wch:25}, {wch:35}, {wch:30}, {wch:15}, {wch:10}, {wch:10}, {wch:15}];
 
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap");
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap_Absensi");
             XLSX.writeFile(wb, "Rekap_Absensi_Citanduy.xlsx");
         }
 
-        function perbesarFoto(u, n) { 
-            document.getElementById('modal-img').src = u; 
-            document.getElementById('modal-name').innerText = n; 
-            document.getElementById('photo-modal').classList.remove('hidden'); 
-        }
+        function perbesarFoto(u, n) { document.getElementById('modal-img').src = u; document.getElementById('modal-name').innerText = n; document.getElementById('photo-modal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('photo-modal').classList.add('hidden'); }
-        async function hapusData(id) { if (confirm('Hapus data?')) { await dbSupabase.from('laporan_absen').delete().eq('id', id); loadData(); } }
+        async function hapusData(id) { if (confirm('Hapus?')) { await dbSupabase.from('laporan_absen').delete().eq('id', id); loadData(); } }
         
         setInterval(() => {
             const n = new Date();
