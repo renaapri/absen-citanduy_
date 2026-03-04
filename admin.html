@@ -182,22 +182,92 @@
             loadData();
         }
 
-        function exportToExcel() {
-            const table = document.getElementById("attendance-table");
-            const ws = XLSX.utils.table_to_sheet(table);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap");
-            XLSX.writeFile(wb, `Rekap_Absensi_Citanduy.xlsx`);
+      function exportToExcel() {
+    const tableBody = document.getElementById('table-body');
+    const rows = tableBody.querySelectorAll('tr');
+    
+    // 1. Cek jika data kosong
+    if (rows.length === 0 || rows[0].innerText.includes("TIDAK ADA DATA")) {
+        alert("Tidak ada data untuk diekspor!");
+        return;
+    }
+
+    // 2. Siapkan Data Tabel (Hanya kolom yang diperlukan sesuai format dinas)
+    const dataTable = [
+        ["NO", "NIP", "NAMA PEGAWAI", "JABATAN", "TANGGAL", "MASUK", "PULANG", "KETERANGAN"]
+    ];
+
+    rows.forEach((row, index) => {
+        const cols = row.querySelectorAll('td');
+        if (cols.length >= 8) {
+            // Ambil Nama dan NIP (dipisah karena di web menyatu)
+            const nama = cols[2].querySelector('div:first-child').innerText.trim();
+            const nipRaw = cols[2].querySelector('div:last-child').innerText.replace('NIP. ', '').trim();
+            
+            // Ambil Jam Masuk dan Status
+            const jamMasuk = cols[5].querySelector('div:first-child').innerText.trim();
+            const status = cols[5].querySelector('div:last-child').innerText.trim();
+            
+            // Ambil Jam Pulang
+            const jamPulang = cols[6].innerText.trim();
+
+            dataTable.push([
+                index + 1,
+                "'" + nipRaw, // Tambah petik (') agar NIP tidak jadi angka berantakan di Excel
+                nama.toUpperCase(),
+                cols[3].innerText.trim(),
+                cols[4].innerText.trim(),
+                jamMasuk.replace('.', ':'),
+                jamPulang === "--:--" ? "-" : jamPulang.replace('.', ':'),
+                status
+            ]);
         }
+    });
 
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.');
-            document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-        }, 1000);
+    // 3. Buat Worksheet dengan Kop Surat
+    const ws = XLSX.utils.aoa_to_sheet([
+        ["PEMERINTAH PROVINSI JAWA BARAT"],
+        ["DINAS SUMBER DAYA AIR"],
+        ["UPTD PENGELOLAAN SUMBER DAYA AIR WILAYAH SUNGAI CITANDUY"],
+        ["Jl.R.A.A WIRATANUNINGRAT NO.3 KOTA TASIKMALAYA"],
+        [""], 
+        ["REKAPITULASI DAFTAR HADIR PEGAWAI"],
+        ["Periode: " + (document.getElementById('filter-mulai').value || "-") + " s/d " + (document.getElementById('filter-sampai').value || "-")],
+        [""],
+        ...dataTable
+    ]);
 
+    // 4. Pengaturan Layout Excel (Merge & Kolom)
+    const mergeRange = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Kop 1
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // Kop 2
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // Kop 3
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } }, // Kop 4
+        { s: { r: 5, c: 0 }, e: { r: 5, c: 7 } }, // Judul Rekap
+        { s: { r: 6, c: 0 }, e: { r: 6, c: 7 } }  // Periode
+    ];
+    ws['!merges'] = mergeRange;
+
+    // Atur lebar kolom agar tidak terpotong (wch = width character)
+    ws['!cols'] = [
+        { wch: 5 },  // NO
+        { wch: 25 }, // NIP
+        { wch: 35 }, // NAMA
+        { wch: 30 }, // JABATAN
+        { wch: 15 }, // TANGGAL
+        { wch: 10 }, // MASUK
+        { wch: 10 }, // PULANG
+        { wch: 15 }  // KETERANGAN
+    ];
+
+    // 5. Eksekusi Download
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap_Absensi");
+    XLSX.writeFile(wb, `Rekap_Absensi_Citanduy.xlsx`);
+}
         window.onload = loadData;
     </script>
 </body>
 </html>
+
 
