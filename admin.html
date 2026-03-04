@@ -10,64 +10,75 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         body { font-family: 'Roboto', sans-serif; background-color: #f0f2f5; }
-        /* Warna Header Biru Tua seperti di Foto */
-        .header-excel-style { background-color: #1f4e78; color: white; }
-        .border-custom { border: 1px solid #000; }
+        
+        /* Style Tabel Agar Persis Seperti di Foto */
+        .table-excel { border-collapse: collapse; width: 100%; }
+        .table-excel th { 
+            background-color: #1f4e78 !important; /* Biru Tua */
+            color: white !important; 
+            border: 1px solid black !important;
+            padding: 8px;
+            text-align: center;
+        }
+        .table-excel td { 
+            border: 1px solid black !important; 
+            padding: 6px; 
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        .text-center { text-align: center; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4">
 
-    <div class="max-w-[1200px] mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
+    <div class="max-w-[1200px] mx-auto bg-white p-6 shadow-lg rounded-lg">
         
-        <div class="text-center p-6 border-b-4 border-black">
-            <h2 class="text-xl font-bold">PEMERINTAH PROVINSI JAWA BARAT</h2>
-            <h2 class="text-xl font-bold">DINAS SUMBER DAYA AIR</h2>
-            <h1 class="text-lg font-bold uppercase">UPTD PENGELOLAAN SUMBER DAYA AIR WILAYAH SUNGAI CITANDUY</h1>
-            <p class="text-sm">Jl. R.A.A. WIRATANUNINGRAT NO. 3 KOTA TASIKMALAYA</p>
-        </div>
-
-        <div class="p-6 bg-gray-50 flex flex-wrap justify-between items-center gap-6">
-            <div class="flex flex-col items-center p-2 bg-white border rounded shadow-sm">
-                <span class="text-[10px] font-bold mb-1">SCAN UNTUK ABSEN</span>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://absen-citanduy-9783.vercel.app/" class="w-24 h-24">
+        <div id="rekap-container">
+            <div class="text-center mb-4">
+                <h2 class="font-bold text-lg">PEMERINTAH PROVINSI JAWA BARAT</h2>
+                <h2 class="font-bold text-lg">DINAS SUMBER DAYA AIR</h2>
+                <h1 class="font-bold text-md">UPTD PENGELOLAAN SUMBER DAYA AIR WILAYAH SUNGAI CITANDUY</h1>
+                <p class="text-sm">Jl. R.A.A. WIRATANUNINGRAT NO. 3 KOTA TASIKMALAYA</p>
+                <div class="border-b-4 border-black my-2"></div>
+                <h3 class="font-bold mt-4 underline">REKAPITULASI DAFTAR HADIR PEGAWAI</h3>
+                <p id="label-periode" class="text-sm font-bold">Periode: -</p>
             </div>
 
-            <div class="flex-1 flex flex-wrap gap-3 items-end justify-end">
-                <div>
-                    <label class="block text-[10px] font-bold uppercase">Dari:</label>
-                    <input type="date" id="filter-mulai" class="border p-2 rounded text-sm">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold uppercase">Sampai:</label>
-                    <input type="date" id="filter-sampai" class="border p-2 rounded text-sm">
-                </div>
-                <button onclick="loadData()" class="bg-blue-800 text-white px-4 py-2 rounded font-bold text-sm hover:bg-blue-900">CARI DATA</button>
-                <button onclick="exportToExcelPuas()" class="bg-green-700 text-white px-4 py-2 rounded font-bold text-sm hover:bg-green-800">📊 DOWNLOAD EXCEL</button>
+            <div class="flex flex-wrap gap-3 mb-6 no-print">
+                <input type="date" id="filter-mulai" class="border p-2 rounded shadow-sm text-sm">
+                <input type="date" id="filter-sampai" class="border p-2 rounded shadow-sm text-sm">
+                <button onclick="loadData()" class="bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold">CARI DATA</button>
+                <button onclick="exportToExcelPuas()" class="bg-green-700 text-white px-4 py-2 rounded text-sm font-bold ml-auto">📊 DOWNLOAD EXCEL REKAP</button>
             </div>
-        </div>
 
-        <div class="text-center py-4">
-            <h3 class="font-bold border-b-2 border-black inline-block px-4">REKAPITULASI DAFTAR HADIR PEGAWAI</h3>
-            <p id="info-periode" class="text-sm mt-1">Periode: -</p>
-        </div>
+            <div class="overflow-x-auto">
+                <table id="table-to-export" class="table-excel">
+                    <thead>
+                        <tr>
+                            <th>NO</th>
+                            <th>NIP</th>
+                            <th>NAMA PEGAWAI</th>
+                            <th>JABATAN</th>
+                            <th>TANGGAL</th>
+                            <th>MASUK</th>
+                            <th>PULANG</th>
+                            <th>KETERANGAN</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
+            </div>
 
-        <div class="overflow-x-auto p-4">
-            <table class="w-full border-collapse border border-black text-sm">
-                <thead>
-                    <tr class="header-excel-style uppercase text-[11px]">
-                        <th class="border border-black p-2 w-10">NO</th>
-                        <th class="border border-black p-2">NIP</th>
-                        <th class="border border-black p-2">NAMA PEGAWAI</th>
-                        <th class="border border-black p-2">JABATAN</th>
-                        <th class="border border-black p-2 text-center">TANGGAL</th>
-                        <th class="border border-black p-2 text-center">MASUK</th>
-                        <th class="border border-black p-2 text-center">PULANG</th>
-                        <th class="border border-black p-2 text-center">KETERANGAN</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body" class="bg-white">
-                    </tbody>
-            </table>
+            <div class="mt-8 flex justify-end">
+                <div class="text-center w-80">
+                    <p id="label-tanggal-ttd">Tasikmalaya, ...</p>
+                    <p class="font-bold">Kepala UPTD PSDA WS Citanduy,</p>
+                    <div class="h-20"></div>
+                    <p class="font-bold underline text-md">NAMA PIMPINAN ANDA, S.T., M.T.</p>
+                    <p>NIP. 19283746552423</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -81,86 +92,50 @@
             const start = document.getElementById('filter-mulai').value;
             const end = document.getElementById('filter-sampai').value;
             
+            // Update Label Periode & Tanggal TTD
             if(start && end) {
-                document.getElementById('info-periode').innerText = `Periode: ${start.split('-').reverse().join('/')} s/d ${end.split('-').reverse().join('/')}`;
+                document.getElementById('label-periode').innerText = `Periode: ${start.split('-').reverse().join('/')} s/d ${end.split('-').reverse().join('/')}`;
             }
+            const tglSkrg = new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+            document.getElementById('label-tanggal-ttd').innerText = `Tasikmalaya, ${tglSkrg}`;
 
-            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center">Memuat Data...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">Memuat...</td></tr>';
 
-            try {
-                let query = dbSupabase.from('laporan_absen').select('*');
-                if (start) query = query.gte('tanggal', start);
-                if (end) query = query.lte('tanggal', end);
-                const { data, error } = await query.order('tanggal', { ascending: false });
+            const { data, error } = await dbSupabase.from('laporan_absen').select('*')
+                .gte('tanggal', start || '2000-01-01')
+                .lte('tanggal', end || '2100-01-01')
+                .order('tanggal', { ascending: false });
 
-                if (error) throw error;
-                tbody.innerHTML = '';
+            if (error) return alert("Gagal");
+            tbody.innerHTML = '';
 
-                data.forEach((row, index) => {
-                    const jamIn = new Date(row.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    const jamOut = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang : '-';
-                    const isLate = jamIn > "06:30"; 
-                    const statusText = isLate ? 'TERLAMBAT' : 'TEPAT WAKTU';
-                    const statusColor = isLate ? 'text-red-600' : 'text-green-700';
+            data.forEach((row, index) => {
+                const jamIn = new Date(row.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+                const jamOut = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang : '-';
+                const isLate = jamIn > "06:30"; 
 
-                    tbody.innerHTML += `
-                        <tr class="border border-black uppercase text-[10px]">
-                            <td class="border border-black p-2 text-center">${index + 1}</td>
-                            <td class="border border-black p-2">'${row.nip}</td>
-                            <td class="border border-black p-2 font-bold">${row.nama}</td>
-                            <td class="border border-black p-2">${row.jabatan}</td>
-                            <td class="border border-black p-2 text-center">${row.tanggal.split('-').reverse().join('/')}</td>
-                            <td class="border border-black p-2 text-center">${jamIn.replace(/:/g, '.')}</td>
-                            <td class="border border-black p-2 text-center">${jamOut.replace(/:/g, '.')}</td>
-                            <td class="border border-black p-2 text-center font-bold ${statusColor}">${statusText}</td>
-                        </tr>`;
-                });
-            } catch (err) { alert("Gagal mengambil data"); }
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td>'${row.nip}</td>
+                        <td class="font-bold">${row.nama}</td>
+                        <td>${row.jabatan}</td>
+                        <td class="text-center">${row.tanggal.split('-').reverse().join('/')}</td>
+                        <td class="text-center">${jamIn.replace(/:/g, '.')}</td>
+                        <td class="text-center">${jamOut.replace(/:/g, '.')}</td>
+                        <td class="text-center font-bold ${isLate ? 'text-red-600' : 'text-green-700'}">${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}</td>
+                    </tr>`;
+            });
         }
 
+        // FUNGSI EXPORT YANG MEMBAWA STYLE (GARIS & WARNA)
         function exportToExcelPuas() {
-            const table = document.querySelector("table");
-            const start = document.getElementById('filter-mulai').value || "-";
-            const end = document.getElementById('filter-sampai').value || "-";
+            const container = document.getElementById('rekap-container');
             
-            // Buat Array data untuk Excel
-            let dataArr = [
-                ["PEMERINTAH PROVINSI JAWA BARAT"],
-                ["DINAS SUMBER DAYA AIR"],
-                ["UPTD PENGELOLAAN SUMBER DAYA AIR WILAYAH SUNGAI CITANDUY"],
-                ["Jl. R.A.A. WIRATANUNINGRAT NO. 3 KOTA TASIKMALAYA"],
-                [""],
-                ["REKAPITULASI DAFTAR HADIR PEGAWAI"],
-                [`Periode: ${start} s/d ${end}`],
-                [""]
-            ];
-
-            // Masukkan Header Tabel
-            dataArr.push(["NO", "NIP", "NAMA PEGAWAI", "JABATAN", "TANGGAL", "MASUK", "PULANG", "KETERANGAN"]);
-
-            // Masukkan Isi Tabel
-            const rows = document.querySelectorAll("#table-body tr");
-            rows.forEach(tr => {
-                let rowData = [];
-                tr.querySelectorAll("td").forEach(td => rowData.push(td.innerText));
-                dataArr.push(rowData);
-            });
-
-            // Tambahkan Tanda Tangan
-            dataArr.push([""]);
-            dataArr.push(["", "", "", "", "", "", "Tasikmalaya, " + new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})]);
-            dataArr.push(["", "", "", "", "", "", "Kepala UPTD PSDA WS Citanduy,"]);
-            dataArr.push([""], [""]);
-            dataArr.push(["", "", "", "", "", "", "NAMA PIMPINAN ANDA"]);
-            dataArr.push(["", "", "", "", "", "", "NIP. 1982736455243"]);
-
-            const ws = XLSX.utils.aoa_to_sheet(dataArr);
+            // Menggunakan Table-to-Book agar gaya CSS ikut terbawa sedikit
+            const wb = XLSX.utils.table_to_book(container, { sheet: "Rekap_Absensi" });
             
-            // Set Lebar Kolom
-            ws['!cols'] = [{wch:5}, {wch:20}, {wch:30}, {wch:25}, {wch:12}, {wch:10}, {wch:10}, {wch:15}];
-
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap");
+            // Memberikan nama file sesuai instansi
             XLSX.writeFile(wb, "Rekap_Absensi_Citanduy.xlsx");
         }
 
