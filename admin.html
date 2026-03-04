@@ -3,80 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - UPTD PSDA WS CITANDUY</title>
+    <title>Rekapitulasi Daftar Hadir Pegawai - UPTD PSDA WS CITANDUY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .late-badge { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-        .ontime-badge { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f2f5; }
+        /* Warna Header Biru Tua seperti di Foto */
+        .header-excel-style { background-color: #1f4e78; color: white; }
+        .border-custom { border: 1px solid #000; }
     </style>
 </head>
-<body class="bg-[#f4f7f6]">
+<body class="p-4 md:p-8">
 
-    <div id="photo-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeModal()">
-        <div class="relative max-w-xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-            <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/50 text-white w-10 h-10 rounded-full hover:bg-black transition text-xl font-bold">&times;</button>
-            <img id="modal-img" src="" class="w-full h-auto max-h-[75vh] object-contain bg-gray-200">
-            <div class="p-5 text-center bg-white">
-                <p id="modal-name" class="font-bold text-lg text-gray-800 uppercase tracking-tight"></p>
-            </div>
-        </div>
-    </div>
-
-    <div class="max-w-[1400px] mx-auto p-6">
-        <div class="bg-[#005a32] text-white p-5 rounded-t-xl flex justify-between items-end shadow-lg border-b-4 border-yellow-500">
-            <div>
-                <h1 class="font-bold text-2xl tracking-tight uppercase">Dashboard Admin Rekapitulasi</h1>
-                <p class="text-xs font-light opacity-80 tracking-widest uppercase text-yellow-400">UPTD PSDA WS CITANDUY</p>
-            </div>
-            <div class="text-right">
-                <p id="live-clock" class="text-2xl font-semibold">00.00.00</p>
-                <p id="live-date" class="text-[10px] uppercase tracking-wider">Loading...</p>
-            </div>
+    <div class="max-w-[1200px] mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
+        
+        <div class="text-center p-6 border-b-4 border-black">
+            <h2 class="text-xl font-bold">PEMERINTAH PROVINSI JAWA BARAT</h2>
+            <h2 class="text-xl font-bold">DINAS SUMBER DAYA AIR</h2>
+            <h1 class="text-lg font-bold uppercase">UPTD PENGELOLAAN SUMBER DAYA AIR WILAYAH SUNGAI CITANDUY</h1>
+            <p class="text-sm">Jl. R.A.A. WIRATANUNINGRAT NO. 3 KOTA TASIKMALAYA</p>
         </div>
 
-        <div class="bg-white p-6 shadow-sm border-x border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
-            <div class="flex flex-col items-center bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
-                <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase">Scan QR Absensi</p>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://absen-citanduy-9783.vercel.app/" class="w-28 h-28 border-2 border-white shadow-sm">
+        <div class="p-6 bg-gray-50 flex flex-wrap justify-between items-center gap-6">
+            <div class="flex flex-col items-center p-2 bg-white border rounded shadow-sm">
+                <span class="text-[10px] font-bold mb-1">SCAN UNTUK ABSEN</span>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://absen-citanduy-9783.vercel.app/" class="w-24 h-24">
             </div>
 
-            <div class="md:col-span-3 flex flex-wrap gap-4 items-end">
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Dari Tanggal</label>
-                    <input type="date" id="filter-mulai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+            <div class="flex-1 flex flex-wrap gap-3 items-end justify-end">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase">Dari:</label>
+                    <input type="date" id="filter-mulai" class="border p-2 rounded text-sm">
                 </div>
-                <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Sampai Tanggal</label>
-                    <input type="date" id="filter-sampai" class="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-600">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase">Sampai:</label>
+                    <input type="date" id="filter-sampai" class="border p-2 rounded text-sm">
                 </div>
-                <button onclick="loadData()" class="bg-[#1a202c] text-white px-6 py-2 rounded text-xs font-bold hover:bg-black transition">CARI DATA</button>
-                
-                <button onclick="exportToExcelPuas()" class="bg-[#1b7340] text-white px-6 py-2 rounded text-xs font-bold hover:bg-[#145a32] flex items-center gap-2 shadow-md ml-auto">
-                    📊 DOWNLOAD EXCEL REKAP
-                </button>
+                <button onclick="loadData()" class="bg-blue-800 text-white px-4 py-2 rounded font-bold text-sm hover:bg-blue-900">CARI DATA</button>
+                <button onclick="exportToExcelPuas()" class="bg-green-700 text-white px-4 py-2 rounded font-bold text-sm hover:bg-green-800">📊 DOWNLOAD EXCEL</button>
             </div>
         </div>
 
-        <div class="bg-white shadow-xl rounded-b-xl overflow-hidden border-x border-b border-gray-200">
-            <table id="attendance-table" class="w-full text-left border-collapse">
+        <div class="text-center py-4">
+            <h3 class="font-bold border-b-2 border-black inline-block px-4">REKAPITULASI DAFTAR HADIR PEGAWAI</h3>
+            <p id="info-periode" class="text-sm mt-1">Periode: -</p>
+        </div>
+
+        <div class="overflow-x-auto p-4">
+            <table class="w-full border-collapse border border-black text-sm">
                 <thead>
-                    <tr class="bg-[#004d2c] text-white text-[10px] font-bold uppercase tracking-wider">
-                        <th class="p-4 text-center w-12 border-r border-white/10">No</th>
-                        <th class="p-4 text-center w-20 border-r border-white/10">Foto</th>
-                        <th class="p-4 border-r border-white/10">Data Pegawai</th>
-                        <th class="p-4 border-r border-white/10">Jabatan</th>
-                        <th class="p-4 text-center border-r border-white/10">Tanggal</th>
-                        <th class="p-4 text-center border-r border-white/10">Masuk</th>
-                        <th class="p-4 text-center border-r border-white/10">Pulang</th>
-                        <th class="p-4 text-center border-r border-white/10">Status</th>
-                        <th class="p-4 text-center">Aksi</th>
+                    <tr class="header-excel-style uppercase text-[11px]">
+                        <th class="border border-black p-2 w-10">NO</th>
+                        <th class="border border-black p-2">NIP</th>
+                        <th class="border border-black p-2">NAMA PEGAWAI</th>
+                        <th class="border border-black p-2">JABATAN</th>
+                        <th class="border border-black p-2 text-center">TANGGAL</th>
+                        <th class="border border-black p-2 text-center">MASUK</th>
+                        <th class="border border-black p-2 text-center">PULANG</th>
+                        <th class="border border-black p-2 text-center">KETERANGAN</th>
                     </tr>
                 </thead>
-                <tbody id="table-body" class="text-xs font-medium text-gray-700 divide-y divide-gray-100 uppercase"></tbody>
+                <tbody id="table-body" class="bg-white">
+                    </tbody>
             </table>
         </div>
     </div>
@@ -88,15 +78,21 @@
 
         async function loadData() {
             const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center italic">Loading...</td></tr>';
             const start = document.getElementById('filter-mulai').value;
             const end = document.getElementById('filter-sampai').value;
+            
+            if(start && end) {
+                document.getElementById('info-periode').innerText = `Periode: ${start.split('-').reverse().join('/')} s/d ${end.split('-').reverse().join('/')}`;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center">Memuat Data...</td></tr>';
 
             try {
                 let query = dbSupabase.from('laporan_absen').select('*');
                 if (start) query = query.gte('tanggal', start);
                 if (end) query = query.lte('tanggal', end);
                 const { data, error } = await query.order('tanggal', { ascending: false });
+
                 if (error) throw error;
                 tbody.innerHTML = '';
 
@@ -104,89 +100,70 @@
                     const jamIn = new Date(row.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
                     const jamOut = (row.jam_pulang && row.jam_pulang !== "NULL") ? row.jam_pulang : '-';
                     const isLate = jamIn > "06:30"; 
-                    const fotoUrl = row.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nama)}&background=random`;
+                    const statusText = isLate ? 'TERLAMBAT' : 'TEPAT WAKTU';
+                    const statusColor = isLate ? 'text-red-600' : 'text-green-700';
 
                     tbody.innerHTML += `
-                        <tr class="border-b border-gray-100">
-                            <td class="p-4 text-center">${index + 1}</td>
-                            <td class="p-4 text-center"><img src="${fotoUrl}" class="w-10 h-12 rounded mx-auto object-cover cursor-pointer" onclick="perbesarFoto('${fotoUrl}', '${row.nama}')"></td>
-                            <td class="p-4"><b>${row.nama}</b><br><span class="text-[9px] text-gray-400">NIP. ${row.nip}</span></td>
-                            <td class="p-4 text-[10px]">${row.jabatan}</td>
-                            <td class="p-4 text-center">${row.tanggal ? row.tanggal.split('-').reverse().join('/') : '-'}</td>
-                            <td class="p-4 text-center">
-                                <span class="font-bold ${isLate ? 'text-red-600' : 'text-green-600'}">${jamIn.replace(/:/g, '.')}</span><br>
-                                <span class="text-[8px] font-black ${isLate ? 'late-badge' : 'ontime-badge'} px-1 rounded">${isLate ? 'TERLAMBAT' : 'TEPAT WAKTU'}</span>
-                            </td>
-                            <td class="p-4 text-center">${jamOut.replace(/:/g, '.')}</td>
-                            <td class="p-4 text-center">
-                                <span class="${jamOut !== '-' ? 'bg-blue-600' : 'bg-green-500'} text-white px-2 py-1 rounded font-black text-[8px]">
-                                    ${jamOut !== '-' ? 'SELESAI' : 'HADIR'}
-                                </span>
-                            </td>
-                            <td class="p-4 text-center"><button onclick="hapusData(${row.id})" class="text-red-300 hover:text-red-600">🗑️</button></td>
+                        <tr class="border border-black uppercase text-[10px]">
+                            <td class="border border-black p-2 text-center">${index + 1}</td>
+                            <td class="border border-black p-2">'${row.nip}</td>
+                            <td class="border border-black p-2 font-bold">${row.nama}</td>
+                            <td class="border border-black p-2">${row.jabatan}</td>
+                            <td class="border border-black p-2 text-center">${row.tanggal.split('-').reverse().join('/')}</td>
+                            <td class="border border-black p-2 text-center">${jamIn.replace(/:/g, '.')}</td>
+                            <td class="border border-black p-2 text-center">${jamOut.replace(/:/g, '.')}</td>
+                            <td class="border border-black p-2 text-center font-bold ${statusColor}">${statusText}</td>
                         </tr>`;
                 });
-            } catch (err) { console.error(err); }
+            } catch (err) { alert("Gagal mengambil data"); }
         }
 
         function exportToExcelPuas() {
-            const rows = document.querySelectorAll('#table-body tr');
-            if (rows.length === 0) return alert("Data kosong!");
-
-            // HEADER TABEL PERSIS GAMBAR
-            const dataTable = [["NO", "NIP", "NAMA PEGAWAI", "JABATAN", "TANGGAL", "MASUK", "PULANG", "KETERANGAN"]];
-
-            rows.forEach((row, index) => {
-                const cols = row.querySelectorAll('td');
-                if (cols.length >= 8) {
-                    const nama = cols[2].querySelector('b').innerText.toUpperCase();
-                    const nip = cols[2].querySelector('span').innerText.replace('NIP. ', '');
-                    const tgl = cols[4].innerText;
-                    const masuk = cols[5].querySelector('span').innerText;
-                    const pulang = cols[6].innerText;
-                    const status = cols[5].querySelectorAll('span')[1].innerText; // TERLAMBAT / TEPAT WAKTU
-
-                    dataTable.push([index + 1, "'" + nip, nama, cols[3].innerText, tgl, masuk, pulang, status]);
-                }
-            });
-
-            // KONSTRUKSI SHEET
-            const ws = XLSX.utils.aoa_to_sheet([
+            const table = document.querySelector("table");
+            const start = document.getElementById('filter-mulai').value || "-";
+            const end = document.getElementById('filter-sampai').value || "-";
+            
+            // Buat Array data untuk Excel
+            let dataArr = [
                 ["PEMERINTAH PROVINSI JAWA BARAT"],
                 ["DINAS SUMBER DAYA AIR"],
                 ["UPTD PENGELOLAAN SUMBER DAYA AIR WILAYAH SUNGAI CITANDUY"],
-                ["Jl.R.A.A WIRATANUNINGRAT NO.3 KOTA TASIKMALAYA"],
+                ["Jl. R.A.A. WIRATANUNINGRAT NO. 3 KOTA TASIKMALAYA"],
                 [""],
                 ["REKAPITULASI DAFTAR HADIR PEGAWAI"],
-                ["Periode: " + (document.getElementById('filter-mulai').value || "-") + " s/d " + (document.getElementById('filter-sampai').value || "-")],
-                [""],
-                ...dataTable,
-                [""],
-                ["", "", "", "", "", "", "Tasikmalaya, " + new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})],
-                ["", "", "", "", "", "", "Kepala UPTD PSDA WS Citanduy"],
-                [""], [""],
-                ["", "", "", "", "", "", "NAMA PIMPINAN, S.T., M.T."],
-                ["", "", "", "", "", "", "NIP. 19283746552423"]
-            ]);
+                [`Periode: ${start} s/d ${end}`],
+                [""]
+            ];
 
-            // STYLE: MERGE & WIDTH
-            ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:7}}, {s:{r:1,c:0},e:{r:1,c:7}}, {s:{r:2,c:0},e:{r:2,c:7}}, {s:{r:3,c:0},e:{r:3,c:7}}, {s:{r:5,c:0},e:{r:5,c:7}}, {s:{r:6,c:0},e:{r:6,c:7}}];
-            ws['!cols'] = [{wch:5}, {wch:25}, {wch:35}, {wch:30}, {wch:15}, {wch:10}, {wch:10}, {wch:15}];
+            // Masukkan Header Tabel
+            dataArr.push(["NO", "NIP", "NAMA PEGAWAI", "JABATAN", "TANGGAL", "MASUK", "PULANG", "KETERANGAN"]);
+
+            // Masukkan Isi Tabel
+            const rows = document.querySelectorAll("#table-body tr");
+            rows.forEach(tr => {
+                let rowData = [];
+                tr.querySelectorAll("td").forEach(td => rowData.push(td.innerText));
+                dataArr.push(rowData);
+            });
+
+            // Tambahkan Tanda Tangan
+            dataArr.push([""]);
+            dataArr.push(["", "", "", "", "", "", "Tasikmalaya, " + new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})]);
+            dataArr.push(["", "", "", "", "", "", "Kepala UPTD PSDA WS Citanduy,"]);
+            dataArr.push([""], [""]);
+            dataArr.push(["", "", "", "", "", "", "NAMA PIMPINAN ANDA"]);
+            dataArr.push(["", "", "", "", "", "", "NIP. 1982736455243"]);
+
+            const ws = XLSX.utils.aoa_to_sheet(dataArr);
+            
+            // Set Lebar Kolom
+            ws['!cols'] = [{wch:5}, {wch:20}, {wch:30}, {wch:25}, {wch:12}, {wch:10}, {wch:10}, {wch:15}];
 
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap_Absensi");
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap");
             XLSX.writeFile(wb, "Rekap_Absensi_Citanduy.xlsx");
         }
 
-        function perbesarFoto(u, n) { document.getElementById('modal-img').src = u; document.getElementById('modal-name').innerText = n; document.getElementById('photo-modal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('photo-modal').classList.add('hidden'); }
-        async function hapusData(id) { if (confirm('Hapus?')) { await dbSupabase.from('laporan_absen').delete().eq('id', id); loadData(); } }
-        
-        setInterval(() => {
-            const n = new Date();
-            document.getElementById('live-clock').innerText = n.toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.');
-            document.getElementById('live-date').innerText = n.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-        }, 1000);
         window.onload = loadData;
     </script>
 </body>
